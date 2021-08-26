@@ -1,6 +1,7 @@
 package com.epam.esm.service;
 
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.exceptions.ResourceNotFoundException;
 import com.epam.esm.model.GiftCertificate;
 import com.epam.esm.model.Tag;
 import com.epam.esm.repository.GiftCertificateRepositoryImpl;
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +22,10 @@ public class GiftCertificateService {
     private static final Logger LOGGER = LogManager.getLogger(GiftCertificateService.class);
     private final GiftCertificateRepositoryImpl giftCertificateRepository;
     private final TagRepositoryImpl tagRepository;
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE = "byDate";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE_DESC = "byDateDesc";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME = "byName";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME_DESC = "byNameDesc";
+    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE = "date";
+    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE_DESC = "date-desc";
+    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME = "name";
+    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME_DESC = "name-desc";
 
     @Autowired
     public GiftCertificateService(GiftCertificateRepositoryImpl giftCertificateRepository, TagRepositoryImpl tagRepository) {
@@ -31,13 +33,13 @@ public class GiftCertificateService {
         this.tagRepository = tagRepository;
     }
 
-    public GiftCertificateDto findById(Long id) {
+    public GiftCertificateDto findById(Long id) throws ResourceNotFoundException {
         GiftCertificate giftCertificate = giftCertificateRepository.findById(id);
         return createGiftCertificateDto(giftCertificate);
     }
 
+    @Transactional
     public void saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
-        //todo: transaction start
         Long newGiftCertificateId = giftCertificateRepository.save(giftCertificate);
         GiftCertificate cratedGiftCertificate = giftCertificateRepository.findById(newGiftCertificateId);
         Tag newTag;
@@ -50,25 +52,22 @@ public class GiftCertificateService {
             }
             giftCertificateRepository.addTagToGiftCertificate(cratedGiftCertificate, newTag);
         }
-        //todo: transaction end
     }
 
+    @Transactional
     public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
-        //todo: transaction start
         giftCertificateRepository.update(giftCertificate);
         tagRepository.deleteGiftCertificateTags(giftCertificate);
         List<Tag> newTags = tags.stream().filter(this::checkNewTag).collect(Collectors.toList());
         newTags.forEach(tagRepository::save);
         for (Tag tag : tags) {
             Tag newTag = tagRepository.findTagByName(tag.getName());
-            System.out.println(newTag);
             giftCertificateRepository.addTagToGiftCertificate(giftCertificate, newTag);
         }
-        //todo: transaction end
     }
 
-    public void deleteGiftCertificate(GiftCertificate giftCertificate) {
-        giftCertificateRepository.delete(giftCertificate.getId());
+    public void deleteGiftCertificate(Long id) {
+        giftCertificateRepository.delete(id);
     }
 
     public List<GiftCertificateDto> findGiftCertificatesByTag(String name) {

@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 public class TagService {
 
     private static final Logger LOGGER = LogManager.getLogger(TagService.class);
+    private final TagRepositoryImpl tagRepository;
 
     @Autowired
-    private TagRepositoryImpl tagRepository;
+    public TagService(TagRepositoryImpl tagRepository) {
+        this.tagRepository = tagRepository;
+    }
 
     public void saveNewTag(Tag tag) {
         if (tagRepository.findTagByName(tag.getName()) == null) {
@@ -25,8 +28,8 @@ public class TagService {
         return tagRepository.findById(id);
     }
 
-    public void deleteTag(Tag tag) {
-        tagRepository.delete(tag);
+    public void deleteTag(Long id) {
+        tagRepository.delete(id);
     }
 
 }

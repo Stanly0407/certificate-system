@@ -2,8 +2,7 @@ package com.epam.esm.controllers;
 
 import com.epam.esm.controllers.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.dto.GiftCertificateDto;
-import com.epam.esm.model.GiftCertificate;
-import com.epam.esm.model.Tag;
+import com.epam.esm.exceptions.ResourceNotFoundException;
 import com.epam.esm.service.GiftCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("certificates")
 public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
@@ -20,39 +20,39 @@ public class GiftCertificateController {
         this.giftCertificateService = giftCertificateService;
     }
 
-    @PostMapping(value = "/createCertificate")
+    @PostMapping
     public void createNewGiftCertificate(@RequestBody GiftCertificateTagsWrapper giftCertificate) {
         giftCertificateService.saveNewGiftCertificate(giftCertificate.getGiftCertificate(), giftCertificate.getTags());
     }
 
-    @PostMapping(value = "/updateCertificate")
+    @PutMapping
     public void updateGiftCertificate(@RequestBody GiftCertificateTagsWrapper giftCertificate) {
         giftCertificateService.updateGiftCertificate(giftCertificate.getGiftCertificate(), giftCertificate.getTags());
     }
 
-    @GetMapping(path = "/findCertificate")
-    public GiftCertificateDto getGiftCertificate(@RequestParam Long id) {
+    @GetMapping("{id}")
+    public GiftCertificateDto getGiftCertificate(@PathVariable Long id) throws ResourceNotFoundException {
         return giftCertificateService.findById(id);
     }
 
-    @PostMapping(value = "/deleteCertificate")
-    public void deleteGiftCertificate(@RequestBody GiftCertificate giftCertificate) {
-        giftCertificateService.deleteGiftCertificate(giftCertificate);
+    @DeleteMapping("{id}")
+    public void deleteGiftCertificate(@PathVariable Long id) {
+        giftCertificateService.deleteGiftCertificate(id);
     }
 
-    @PostMapping(path = "/findCertificatesByTag")
-    public List<GiftCertificateDto> findCertificatesByName(@RequestBody Tag tag) {
-        return giftCertificateService.findGiftCertificatesByTag(tag.getName());
+    @GetMapping("tag/{name}")
+    public List<GiftCertificateDto> findCertificatesByTag(@PathVariable("name") String tagName) {
+        return giftCertificateService.findGiftCertificatesByTag(tagName);
     }
 
-    @PostMapping(path = "/searchCertificates")
-    public List<GiftCertificateDto> findCertificatesByNameOrDescription(@RequestBody String searchCondition) {
+    @GetMapping("search/{condition}")
+    public List<GiftCertificateDto> findCertificatesByNameOrDescription(@PathVariable("condition") String searchCondition) {
         return giftCertificateService.findGiftCertificatesByNameOrDescription(searchCondition);
     }
 
-    @GetMapping(path = "/getSortedCertificates")
-    public List<GiftCertificateDto> getSortedGiftCertificates(@RequestParam String condition) {
-        return giftCertificateService.getGiftCertificatesSortedByCondition(condition);
+    @GetMapping("sort/{condition}")
+    public List<GiftCertificateDto> getSortedGiftCertificates(@PathVariable("condition") String sortCondition) {
+        return giftCertificateService.getGiftCertificatesSortedByCondition(sortCondition);
     }
 
 }

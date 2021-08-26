@@ -62,8 +62,8 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
-    public void delete(Tag tag) {
-        jdbcTemplate.update(DELETE_TAG_BY_ID, tag.getId());
+    public void delete(Long id) {
+        jdbcTemplate.update(DELETE_TAG_BY_ID, id);
     }
 
 }

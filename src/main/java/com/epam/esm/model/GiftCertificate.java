@@ -2,7 +2,7 @@ package com.epam.esm.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+import java.util.Objects;
 
 public class GiftCertificate extends Entity {
 
@@ -75,6 +75,24 @@ public class GiftCertificate extends Entity {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GiftCertificate that = (GiftCertificate) o;
+        return duration == that.duration &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(price, that.price) &&
+                Objects.equals(createDate, that.createDate) &&
+                Objects.equals(lastUpdateDate, that.lastUpdateDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, description, price, duration, createDate, lastUpdateDate);
+    }
+
+    @Override
     public String toString() {
         return "GiftCertificate{" +
                 "name='" + name + '\'' +
@@ -85,4 +103,5 @@ public class GiftCertificate extends Entity {
                 ", lastUpdateDate=" + lastUpdateDate +
                 '}';
     }
+
 }

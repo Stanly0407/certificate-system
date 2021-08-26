@@ -71,6 +71,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @Override
     public GiftCertificate findById(Long id) {
+        System.out.println(id);
         return jdbcTemplate.query(SELECT_CERTIFICATE_BY_ID, new Object[]{id}, new BeanPropertyRowMapper<>(GiftCertificate.class))
                 .stream().findAny().orElse(null);
     }
@@ -79,15 +80,17 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
     public Long save(GiftCertificate giftCertificate) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
-                connection -> { PreparedStatement preparedStatement = connection.prepareStatement(INSERT_CERTIFICATE, PreparedStatement.RETURN_GENERATED_KEYS);
+                connection -> {
+                    PreparedStatement preparedStatement = connection.prepareStatement(INSERT_CERTIFICATE, PreparedStatement.RETURN_GENERATED_KEYS);
                     preparedStatement.setObject(1, giftCertificate.getName());
                     preparedStatement.setObject(2, giftCertificate.getDescription());
                     preparedStatement.setObject(3, giftCertificate.getPrice());
                     preparedStatement.setObject(4, giftCertificate.getDuration());
-                    return preparedStatement; },
+                    return preparedStatement;
+                },
                 keyHolder);
 
-        return  Objects.requireNonNull(keyHolder.getKey()).longValue();
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 
     @Override

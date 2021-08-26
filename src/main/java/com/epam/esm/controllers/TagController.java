@@ -3,10 +3,10 @@ package com.epam.esm.controllers;
 import com.epam.esm.model.Tag;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("tags")
 public class TagController {
 
     private final TagService tagService;
@@ -16,20 +16,19 @@ public class TagController {
         this.tagService = tagService;
     }
 
-    @PostMapping(value = "/createTag")
+    @PostMapping
     public void createNewTag(@RequestBody Tag tag) {
         tagService.saveNewTag(tag);
     }
 
-    @GetMapping(value = "/findTag")
-    public ResponseEntity<Tag> findTag(@RequestParam Long id) {
-        Tag tag = tagService.findTagById(id);
-        return ResponseEntity.ok(tag);
+    @GetMapping("{id}")
+    public Tag findTag(@PathVariable Long id) {
+        return tagService.findTagById(id);
     }
 
-    @PostMapping(value = "/deleteTag")
-    public void deleteTag(@RequestBody Tag tag) {
-        tagService.deleteTag(tag);
+    @DeleteMapping("{id}")
+    public void deleteTag(@PathVariable Long id) {
+        tagService.deleteTag(id);
     }
 
 }
