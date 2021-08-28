@@ -1,19 +1,38 @@
 package com.epam.esm.exceptions;
 
-public class ResourceNotFoundException extends Exception {
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.Locale;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+
+    private static final String MESSAGE_KEY = "message.exception.notfound";
+    private Locale locale;
+    private String resource;
+
+    public ResourceNotFoundException(String resource) {
+        this.resource = resource;
+    }
 
     public ResourceNotFoundException() {
     }
 
-    public ResourceNotFoundException(String message) {
-        super(message);
+    public String getLocalizedMessage() {
+        return ErrorResponse.getMessageForLocale(MESSAGE_KEY, locale);
     }
 
-    public ResourceNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 
-    public ResourceNotFoundException(Throwable cause) {
-        super(cause);
+    public static HttpStatus getHttpStatus() {
+        return HttpStatus.NOT_FOUND;
     }
+
+    public String getResource() {
+        return resource;
+    }
+
 }

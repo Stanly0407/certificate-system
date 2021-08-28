@@ -1,46 +1,56 @@
 package com.epam.esm.controllers;
 
-import com.epam.esm.exceptions.ApiError;
+import com.epam.esm.exceptions.ErrorResponse;
+import com.epam.esm.exceptions.ResourceNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
-        List<String> errors = new ArrayList<>();
+    private static final Logger LOGGER = LogManager.getLogger(RestResponseEntityExceptionHandler.class);
+    private static final String INTERNAL_ERROR = "message.exception.internal";
+    private static final String PAGE_NOT_FOUND_ERROR = "message.exception.page.notfound";
 
-        for (FieldError error : exception.getBindingResult().getFieldErrors()) {
-            errors.add(error.getField() + ": " + error.getDefaultMessage());
-        }
-
-        for (ObjectError error : exception.getBindingResult().getGlobalErrors()) {
-            errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
-        }
-
-        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, exception.getLocalizedMessage(), errors);
-        return handleExceptionInternal(exception, apiError, headers, apiError.getStatus(), request);
+    @ExceptionHandler(ResourceNotFoundException.class)
+    protected final ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception,
+                                                                                  WebRequest request) {
+        Locale locale = request.getLocale();
+        exception.setLocale(locale);
+        String errorMessage = exception.getLocalizedMessage() + exception.getResource();
+        LOGGER.debug("errorMessage = " + errorMessage);
+        ErrorResponse error = new ErrorResponse(errorMessage, ResourceNotFoundException.getHttpStatus());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
-        String error = ex.getParameterName() + " parameter is missing";
-        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
+                                                                   HttpStatus status, WebRequest request) {
+        Locale locale = request.getLocale();
+        String errorMessage = ErrorResponse.getMessageForLocale(PAGE_NOT_FOUND_ERROR, locale);
+        ErrorResponse error = new ErrorResponse(errorMessage, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+                                                             HttpStatus status, WebRequest request) {
+        Locale locale = request.getLocale();
+        String errorMessage = ErrorResponse.getMessageForLocale(INTERNAL_ERROR, locale);
+        ErrorResponse error = new ErrorResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
 
 }
+
