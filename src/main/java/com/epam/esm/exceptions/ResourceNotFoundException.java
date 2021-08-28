@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.Locale;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends Exception {
 
     private static final String MESSAGE_KEY = "message.exception.notfound";
     private Locale locale;
