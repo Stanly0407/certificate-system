@@ -5,9 +5,12 @@ import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.exceptions.ResourceNotFoundException;
 import com.epam.esm.service.GiftCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("certificates")
@@ -26,18 +29,38 @@ public class GiftCertificateController {
     }
 
     @PutMapping
-    public void updateGiftCertificate(@RequestBody GiftCertificateTagsWrapper giftCertificate) {
-        giftCertificateService.updateGiftCertificate(giftCertificate.getGiftCertificate(), giftCertificate.getTags());
+    public void updateGiftCertificate(@RequestBody GiftCertificateTagsWrapper giftCertificate) throws ResourceNotFoundException {
+        Long giftCertificateId = giftCertificate.getGiftCertificate().getId();
+        Optional<GiftCertificateDto> giftCertificateDto = giftCertificateService.findById(giftCertificateId);
+        if (giftCertificateDto.isPresent()) {
+            giftCertificateService.updateGiftCertificate(giftCertificate.getGiftCertificate(), giftCertificate.getTags());
+        } else {
+            String resource = " (Gift certificate id = " + giftCertificateId + ")";
+            throw new ResourceNotFoundException(resource);
+        }
     }
 
     @GetMapping("{id}")
-    public GiftCertificateDto getGiftCertificate(@PathVariable Long id) throws ResourceNotFoundException {
-        return giftCertificateService.findById(id);
+    public ResponseEntity<?> getGiftCertificate(@PathVariable Long id) throws ResourceNotFoundException {
+        Optional<GiftCertificateDto> giftCertificateDto = giftCertificateService.findById(id);
+        if (giftCertificateDto.isPresent()) {
+            return ResponseEntity.ok().body(giftCertificateDto.get());
+        } else {
+            String resource = " (Gift certificate id = " + id + ")";
+            throw new ResourceNotFoundException(resource);
+        }
     }
 
     @DeleteMapping("{id}")
-    public void deleteGiftCertificate(@PathVariable Long id) {
-        giftCertificateService.deleteGiftCertificate(id);
+    public ResponseEntity<?> deleteGiftCertificate(@PathVariable Long id) throws ResourceNotFoundException {
+        Optional<GiftCertificateDto> giftCertificate = giftCertificateService.findById(id);
+        if (giftCertificate.isPresent()) {
+            giftCertificateService.deleteGiftCertificate(id);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } else {
+            String resource = " (Gift certificate id " + id + ")";
+            throw new ResourceNotFoundException(resource);
+        }
     }
 
     @GetMapping("tag/{name}")
