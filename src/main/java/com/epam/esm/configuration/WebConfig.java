@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -20,10 +21,11 @@ import java.util.Properties;
 @Configuration
 @ComponentScan("com.epam.esm")
 @EnableWebMvc
+//@Profile("prod")
 public class WebConfig implements WebMvcConfigurer {
 
     private static final Logger LOGGER = LogManager.getLogger(WebConfig.class);
-    private static final String PROPERTIES_FILENAME = "database.properties";
+    private static final String PROD_DATABASE_PROPERTIES_FILENAME = "prod_database.properties";
     private static final String PROPERTY_DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
     private static final String PROPERTY_URL = "CONNECTION_URL";
     private static final String PROPERTY_USER = "USER";
@@ -41,22 +43,22 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public HikariDataSource dataSource() {
         HikariConfig config = new HikariConfig();
-        try (InputStream input = WebConfig.class.getClassLoader().getResourceAsStream(PROPERTIES_FILENAME)) {
+        try (InputStream input = WebConfig.class.getClassLoader().getResourceAsStream(PROD_DATABASE_PROPERTIES_FILENAME)) {
             Properties properties = new Properties();
             properties.load(input);
-            config.setMaximumPoolSize(100);
+            config.setMaximumPoolSize(10);
             config.setDriverClassName(PROPERTY_DRIVER_CLASSNAME);
             config.setJdbcUrl(properties.getProperty(PROPERTY_URL));
             config.setUsername(properties.getProperty(PROPERTY_USER));
             config.setPassword(properties.getProperty(PROPERTY_PASSWORD));
         } catch (IOException e) {
-            LOGGER.error("Error read DB properties: " + e + " | MESSAGE: " + e.getMessage());
+            LOGGER.error("Error read DB properties: " + e + " | Message: " + e.getMessage());
         }
         return new HikariDataSource(config);
     }
 
     @Bean
-    public JdbcTemplate jdbcTemplate() {
+    public JdbcTemplate jdbcTemplateProd() {
         return new JdbcTemplate(dataSource());
     }
 
