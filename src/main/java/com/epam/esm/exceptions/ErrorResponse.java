@@ -1,7 +1,5 @@
 package com.epam.esm.exceptions;
 
-import org.springframework.http.HttpStatus;
-
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -11,9 +9,9 @@ public class ErrorResponse {
     private String errorMessage;
     private int errorCode;
 
-    public ErrorResponse(String errorMessage, HttpStatus errorCode) {
+    public ErrorResponse(String errorMessage, int errorCode) {
         this.errorMessage = errorMessage;
-        this.errorCode = errorCode.value();
+        this.errorCode = errorCode;
     }
 
     public static String getMessageForLocale(String messageKey, Locale locale) {

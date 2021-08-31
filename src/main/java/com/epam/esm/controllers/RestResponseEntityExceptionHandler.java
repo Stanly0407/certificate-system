@@ -28,9 +28,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         Locale locale = request.getLocale();
         exception.setLocale(locale);
         String errorMessage = exception.getLocalizedMessage() + exception.getResource();
+        int errorCode = ResourceNotFoundException.getErrorCode();
         LOGGER.debug("errorMessage = " + errorMessage);
-        ErrorResponse error = new ErrorResponse(errorMessage, ResourceNotFoundException.getHttpStatus());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
+        return new ResponseEntity<>(error, ResourceNotFoundException.getHttpStatus());
     }
 
     @Override
@@ -38,19 +39,21 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
                                                                    HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
         String errorMessage = ErrorResponse.getMessageForLocale(PAGE_NOT_FOUND_ERROR, locale);
-        ErrorResponse error = new ErrorResponse(errorMessage, HttpStatus.NOT_FOUND);
+        int errorCode = 40402;
+        ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<Object> handleExceptionInternal(Exception exception, Object body, HttpHeaders headers,
                                                              HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
         String errorMessage = ErrorResponse.getMessageForLocale(INTERNAL_ERROR, locale);
-        ErrorResponse error = new ErrorResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        int errorCode = 50001;
+        ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
+        LOGGER.error("Internal Error: " + exception + " | Message: " + exception.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
 }
-
