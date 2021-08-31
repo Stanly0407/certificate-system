@@ -1,25 +1,22 @@
 package com.epam.esm.service;
 
 import com.epam.esm.dto.GiftCertificateDto;
-import com.epam.esm.exceptions.ResourceNotFoundException;
 import com.epam.esm.model.GiftCertificate;
 import com.epam.esm.model.Tag;
 import com.epam.esm.repository.GiftCertificateRepositoryImpl;
 import com.epam.esm.repository.TagRepositoryImpl;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class GiftCertificateService {
 
-    private static final Logger LOGGER = LogManager.getLogger(GiftCertificateService.class);
     private final GiftCertificateRepositoryImpl giftCertificateRepository;
     private final TagRepositoryImpl tagRepository;
     private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE = "date";
@@ -27,22 +24,20 @@ public class GiftCertificateService {
     private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME = "name";
     private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME_DESC = "name-desc";
 
-    @Autowired
     public GiftCertificateService(GiftCertificateRepositoryImpl giftCertificateRepository, TagRepositoryImpl tagRepository) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.tagRepository = tagRepository;
     }
 
-    public GiftCertificateDto findById(Long id) throws ResourceNotFoundException {
-        GiftCertificate giftCertificate = giftCertificateRepository.findById(id);
-        return createGiftCertificateDto(giftCertificate);
+    public Optional<GiftCertificateDto> findById(Long id) {
+        Optional<GiftCertificate> giftCertificate = giftCertificateRepository.findById(id);
+        return giftCertificate.map(this::createGiftCertificateDto);
     }
 
-    @Transactional
     public void saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         Long newGiftCertificateId = giftCertificateRepository.save(giftCertificate);
-        GiftCertificate cratedGiftCertificate = giftCertificateRepository.findById(newGiftCertificateId);
-        Tag newTag;
+        Optional<GiftCertificate> createdGiftCertificate = giftCertificateRepository.findById(newGiftCertificateId);
+        Optional<Tag> newTag;
         for (Tag tag : tags) {
             if (checkNewTag(tag)) {
                 Long newTagId = tagRepository.save(tag);
@@ -50,19 +45,20 @@ public class GiftCertificateService {
             } else {
                 newTag = tagRepository.findTagByName(tag.getName());
             }
-            giftCertificateRepository.addTagToGiftCertificate(cratedGiftCertificate, newTag);
+            if (createdGiftCertificate.isPresent() && newTag.isPresent()) {
+                giftCertificateRepository.addTagToGiftCertificate(createdGiftCertificate.get(), newTag.get());
+            }
         }
     }
 
-    @Transactional
     public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         giftCertificateRepository.update(giftCertificate);
         tagRepository.deleteGiftCertificateTags(giftCertificate);
         List<Tag> newTags = tags.stream().filter(this::checkNewTag).collect(Collectors.toList());
         newTags.forEach(tagRepository::save);
         for (Tag tag : tags) {
-            Tag newTag = tagRepository.findTagByName(tag.getName());
-            giftCertificateRepository.addTagToGiftCertificate(giftCertificate, newTag);
+            Optional<Tag> newTag = tagRepository.findTagByName(tag.getName());
+            newTag.ifPresent(value -> giftCertificateRepository.addTagToGiftCertificate(giftCertificate, value));
         }
     }
 
@@ -100,11 +96,12 @@ public class GiftCertificateService {
     }
 
     private boolean checkNewTag(Tag tag) {
-        return tagRepository.findTagByName(tag.getName()) == null;
+        return !tagRepository.findTagByName(tag.getName()).isPresent();
     }
 
     private GiftCertificateDto createGiftCertificateDto(GiftCertificate giftCertificate) {
-        List<Tag> tags = tagRepository.findGiftCertificateTags(giftCertificate.getId());
+        Long giftCertificateId = giftCertificate.getId();
+        List<Tag> tags = tagRepository.findGiftCertificateTags(giftCertificateId);
         return new GiftCertificateDto.Builder()
                 .id(giftCertificate.getId())
                 .name(giftCertificate.getName())
