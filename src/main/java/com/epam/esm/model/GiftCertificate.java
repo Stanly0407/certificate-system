@@ -16,6 +16,13 @@ public class GiftCertificate extends Entity {
     public GiftCertificate() {
     }
 
+    public GiftCertificate(String name, String description, BigDecimal price, int duration) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+    }
+
     public GiftCertificate(Long id, String name, String description, BigDecimal price, int duration, LocalDateTime createDate, LocalDateTime lastUpdateDate) {
         super(id);
         this.name = name;
@@ -24,6 +31,23 @@ public class GiftCertificate extends Entity {
         this.duration = duration;
         this.createDate = createDate;
         this.lastUpdateDate = lastUpdateDate;
+    }
+
+    public GiftCertificate(Long id, String name, String description, BigDecimal price, int duration, LocalDateTime createDate) {
+        super(id);
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
+        this.createDate = createDate;
+    }
+
+    public GiftCertificate(Long id, String name, String description, BigDecimal price, int duration) {
+        super(id);
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.duration = duration;
     }
 
     public String getName() {
@@ -76,8 +100,12 @@ public class GiftCertificate extends Entity {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         GiftCertificate that = (GiftCertificate) o;
         return duration == that.duration &&
                 Objects.equals(name, that.name) &&
@@ -90,18 +118,6 @@ public class GiftCertificate extends Entity {
     @Override
     public int hashCode() {
         return Objects.hash(name, description, price, duration, createDate, lastUpdateDate);
-    }
-
-    @Override
-    public String toString() {
-        return "GiftCertificate{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", price=" + price +
-                ", duration=" + duration +
-                ", createDate=" + createDate +
-                ", lastUpdateDate=" + lastUpdateDate +
-                '}';
     }
 
 }

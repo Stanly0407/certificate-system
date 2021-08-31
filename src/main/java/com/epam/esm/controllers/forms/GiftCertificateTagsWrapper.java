@@ -34,11 +34,4 @@ public class GiftCertificateTagsWrapper {
         this.giftCertificate = giftCertificate;
     }
 
-    @Override
-    public String toString() {
-        return "GiftCertificateTagsWrapper{" +
-                "giftCertificate=" + giftCertificate +
-                ", tags=" + tags +
-                '}';
-    }
 }

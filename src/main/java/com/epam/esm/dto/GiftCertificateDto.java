@@ -17,12 +17,15 @@ public class GiftCertificateDto {
     private String description;
     private BigDecimal price;
     private int duration;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createDate;
+
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastUpdateDate;
+
     private List<Tag> tags;
 
     public Long getId() {
@@ -111,8 +114,12 @@ public class GiftCertificateDto {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         GiftCertificateDto that = (GiftCertificateDto) o;
         return duration == that.duration &&
                 Objects.equals(id, that.id) &&
@@ -128,4 +135,5 @@ public class GiftCertificateDto {
     public int hashCode() {
         return Objects.hash(id, name, description, price, duration, createDate, lastUpdateDate, tags);
     }
+
 }
