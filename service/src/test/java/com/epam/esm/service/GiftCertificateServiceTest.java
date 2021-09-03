@@ -1,11 +1,11 @@
 package com.epam.esm.service;
 
-
-import com.epam.esm.domain.dto.GiftCertificateDto;
-import com.epam.esm.domain.entities.GiftCertificate;
-import com.epam.esm.domain.entities.Tag;
-import com.epam.esm.domain.repository.GiftCertificateRepository;
-import com.epam.esm.domain.repository.TagRepository;
+import com.epam.esm.service.dto.GiftCertificateDto;
+import com.epam.esm.entities.GiftCertificate;
+import com.epam.esm.entities.Tag;
+import com.epam.esm.repository.GiftCertificateRepository;
+import com.epam.esm.repository.TagRepository;
+import com.epam.esm.service.service.GiftCertificateServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
