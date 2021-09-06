@@ -8,13 +8,11 @@ description varchar(255),
 price decimal(10,2),
 duration int,
 create_date datetime default current_timestamp,
-last_update_date datetime default current_timestamp,
-FULLTEXT (name, description));
+last_update_date datetime default current_timestamp);
 
 create table tag(
 id bigint primary key auto_increment,
-name varchar(255),
-FULLTEXT (name));
+name varchar(255));
 
 create table certificate_tag (
 certificate_id BIGINT,

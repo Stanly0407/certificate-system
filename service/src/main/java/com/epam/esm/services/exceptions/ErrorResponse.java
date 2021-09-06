@@ -1,4 +1,4 @@
-package com.epam.esm.service.exceptions;
+package com.epam.esm.services.exceptions;
 
 import java.util.Locale;
 import java.util.ResourceBundle;

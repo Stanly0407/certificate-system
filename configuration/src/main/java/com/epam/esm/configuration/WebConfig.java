@@ -2,8 +2,6 @@ package com.epam.esm.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,28 +11,38 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 @Configuration
-@ComponentScan({"com.epam.esm.service", "com.epam.esm.repository", "com.epam.esm.configuration",
+@ComponentScan({"com.epam.esm.services", "com.epam.esm.repository", "com.epam.esm.configuration",
         "com.epam.esm.controllers", "com.epam.esm.entities"})
 @EnableWebMvc
 @PropertySource("classpath:prod_database.properties")
 @PropertySource("classpath:dev_database.properties")
 public class WebConfig implements WebMvcConfigurer {
 
-    private static final Logger LOGGER = LogManager.getLogger(WebConfig.class);
-    private static final String DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
+    private static final int POOL_SIZE = 10;
+
+    @Value("${DEV_DRIVER_CLASSNAME}")
+    private String devDriverClassname;
+
     @Value("${DEV_CONNECTION_URL}")
     private String devUrl;
+
     @Value("${DEV_USER}")
     private String devUsername;
+
     @Value("${DEV_PASSWORD}")
     private String devPassword;
+
+    @Value("${DRIVER_CLASSNAME}")
+    private String prodDriverClassname;
+
     @Value("${CONNECTION_URL}")
     private String prodUrl;
+
     @Value("${USER}")
     private String prodUsername;
+
     @Value("${PASSWORD}")
     private String prodPassword;
-
 
     @Bean
     ViewResolver viewResolver() {
@@ -49,8 +57,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public HikariDataSource dataSourceProd() {
         HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(10);
-        config.setDriverClassName(DRIVER_CLASSNAME);
+        config.setMaximumPoolSize(POOL_SIZE);
+        config.setDriverClassName(prodDriverClassname);
         config.setJdbcUrl(prodUrl);
         config.setUsername(prodUsername);
         config.setPassword(prodPassword);
@@ -67,8 +75,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public HikariDataSource dataSource() {
         HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(10);
-        config.setDriverClassName(DRIVER_CLASSNAME);
+        config.setMaximumPoolSize(POOL_SIZE);
+        config.setDriverClassName(devDriverClassname);
         config.setJdbcUrl(devUrl);
         config.setUsername(devUsername);
         config.setPassword(devPassword);
@@ -80,11 +88,5 @@ public class WebConfig implements WebMvcConfigurer {
     public JdbcTemplate jdbcTemplateDev() {
         return new JdbcTemplate(dataSource());
     }
-
-
-//    @Bean
-//    BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
-//        return new BeanNameUrlHandlerMapping();
-//    }
 
 }
