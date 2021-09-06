@@ -1,5 +1,4 @@
-package com.epam.esm.service.dto;
-
+package com.epam.esm.services.dto;
 
 import com.epam.esm.entities.Tag;
 import com.fasterxml.jackson.annotation.JsonFormat;

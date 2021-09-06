@@ -1,4 +1,4 @@
-package com.epam.esm.service.service;
+package com.epam.esm.services.service;
 
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.TagRepository;
