@@ -1,8 +1,8 @@
-package com.epam.esm.service;
+package com.epam.esm.services;
 
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.TagRepository;
-import com.epam.esm.service.service.TagServiceImpl;
+import com.epam.esm.services.service.TagServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

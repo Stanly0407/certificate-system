@@ -1,11 +1,11 @@
-package com.epam.esm.service;
+package com.epam.esm.services;
 
-import com.epam.esm.service.dto.GiftCertificateDto;
 import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
-import com.epam.esm.service.service.GiftCertificateServiceImpl;
+import com.epam.esm.services.dto.GiftCertificateDto;
+import com.epam.esm.services.service.GiftCertificateServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -112,7 +112,7 @@ public class GiftCertificateServiceTest {
         Optional<Tag> tagFirstOptional = Optional.of(TAG_FIRST);
         Optional<Tag> tagSecondOptional = Optional.of(TAG_SECOND);
         doNothing().when(giftCertificateRepository).update(GIFT_CERTIFICATE_FIRST);
-        doNothing().when(tagRepository).deleteGiftCertificateTags(GIFT_CERTIFICATE_FIRST);
+        doNothing().when(tagRepository).deleteGiftCertificateTags(1L);
         when(tagRepository.findTagByName(FIRST_TAG_NAME)).thenReturn(tagFirstOptional);
         when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(Optional.empty()).thenReturn(tagSecondOptional);
         when(tagRepository.save(TAG_SECOND)).thenReturn(NEW_TAG_ID);
@@ -122,7 +122,7 @@ public class GiftCertificateServiceTest {
         giftCertificateService.updateGiftCertificate(GIFT_CERTIFICATE_FIRST, tags);
 
         verify(giftCertificateRepository).update(any(GiftCertificate.class));
-        verify(tagRepository).deleteGiftCertificateTags(any(GiftCertificate.class));
+        verify(tagRepository).deleteGiftCertificateTags(anyLong());
         verify(tagRepository, times(1)).save(any(Tag.class));
         verify(tagRepository, times(4)).findTagByName(anyString());
         verify(giftCertificateRepository, times(2))
