@@ -1,11 +1,10 @@
-package com.epam.esm.service.service;
+package com.epam.esm.services.service;
 
-
-import com.epam.esm.service.dto.GiftCertificateDto;
 import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
+import com.epam.esm.services.dto.GiftCertificateDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +53,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         giftCertificateRepository.update(giftCertificate);
-        tagRepository.deleteGiftCertificateTags(giftCertificate);
+        tagRepository.deleteGiftCertificateTags(giftCertificate.getId());
         List<Tag> newTags = tags.stream().filter(this::checkNewTag).collect(Collectors.toList());
         newTags.forEach(tagRepository::save);
         for (Tag tag : tags) {
@@ -77,9 +76,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return createCertificateDtoList(giftCertificateList);
     }
 
-    public List<GiftCertificateDto> getGiftCertificatesSortedByCondition(String sortingCondition) {
+    public List<GiftCertificateDto> getGiftCertificatesSortedByCondition(String sortCondition) {
         List<GiftCertificate> giftCertificateList = new ArrayList<>();
-        switch (sortingCondition) {
+        switch (sortCondition) {
             case GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE:
                 giftCertificateList = giftCertificateRepository.findAllSortedByDate();
                 break;

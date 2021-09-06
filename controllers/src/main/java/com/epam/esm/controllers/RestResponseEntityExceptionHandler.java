@@ -1,7 +1,7 @@
 package com.epam.esm.controllers;
 
-import com.epam.esm.service.exceptions.ErrorResponse;
-import com.epam.esm.service.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.exceptions.ErrorResponse;
+import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;

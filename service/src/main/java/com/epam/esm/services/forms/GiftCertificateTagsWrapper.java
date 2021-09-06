@@ -1,4 +1,4 @@
-package com.epam.esm.service.forms;
+package com.epam.esm.services.forms;
 
 
 import com.epam.esm.entities.GiftCertificate;
