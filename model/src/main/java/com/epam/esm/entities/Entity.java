@@ -12,7 +12,8 @@ import java.io.Serializable;
 public abstract class Entity implements Cloneable, Serializable {
 
     /**
-     * This is a unique field of an entity that allows it to be distinguished from other com.epam.esm.entities and to identify it.
+     * This is a unique field of an entity that allows it to be distinguished from other com.epam.esm.entities
+     * and to identify it.
      */
     private Long id;
 
