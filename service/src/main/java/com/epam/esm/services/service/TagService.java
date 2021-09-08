@@ -10,7 +10,6 @@ import java.util.Optional;
  * and prepares the data to the users if required.
  *
  * @author Sviatlana Shelestava
- * @see com.epam.esm.services.service.TagServiceImpl
  * @since 1.0
  */
 public interface TagService {

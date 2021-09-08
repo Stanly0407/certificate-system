@@ -9,7 +9,6 @@ import java.util.Optional;
  * An interface {@code TagRepository} defines the methods for retrieving tag data from the database;
  *
  * @author Sviatlana Shelestava
- * @see com.epam.esm.repository.TagRepositoryImpl
  * @since 1.0
  */
 public interface TagRepository {

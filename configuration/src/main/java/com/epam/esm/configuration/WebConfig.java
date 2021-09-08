@@ -3,12 +3,15 @@ package com.epam.esm.configuration;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 @Configuration
 @ComponentScan({"com.epam.esm.services", "com.epam.esm.repository", "com.epam.esm.configuration",
@@ -44,15 +47,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${PASSWORD}")
     private String prodPassword;
 
-    @Bean
-    ViewResolver viewResolver() {
-        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-        resolver.setPrefix("/WEB-INF/");
-        resolver.setSuffix(".jsp");
-        resolver.setContentType("text/html;charset=utf8");
-        return resolver;
-    }
-
     @Profile("prod")
     @Bean
     public HikariDataSource dataSourceProd() {
@@ -87,6 +81,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public JdbcTemplate jdbcTemplateDev() {
         return new JdbcTemplate(dataSource());
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
     }
 
 }

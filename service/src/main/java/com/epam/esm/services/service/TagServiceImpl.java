@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class TagServiceImpl implements TagService {
 
     private final TagRepository tagRepository;
@@ -17,16 +16,19 @@ public class TagServiceImpl implements TagService {
         this.tagRepository = tagRepository;
     }
 
+    @Transactional
     public void saveNewTag(Tag tag) {
         if (!tagRepository.findTagByName(tag.getName()).isPresent()) {
             tagRepository.save(tag);
         }
     }
 
+    @Transactional
     public Optional<Tag> findTagById(Long id) {
         return tagRepository.findById(id);
     }
 
+    @Transactional
     public void deleteTag(Long id) {
         tagRepository.delete(id);
     }

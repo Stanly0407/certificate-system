@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private final GiftCertificateRepository giftCertificateRepository;
@@ -29,11 +28,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         this.tagRepository = tagRepository;
     }
 
+    @Transactional
     public Optional<GiftCertificateDto> findById(Long id) {
         Optional<GiftCertificate> giftCertificate = giftCertificateRepository.findById(id);
         return giftCertificate.map(this::createGiftCertificateDto);
     }
 
+    @Transactional
     public void saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         Long newGiftCertificateId = giftCertificateRepository.save(giftCertificate);
         Optional<GiftCertificate> createdGiftCertificate = giftCertificateRepository.findById(newGiftCertificateId);
@@ -51,6 +52,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
     }
 
+    @Transactional
     public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         giftCertificateRepository.update(giftCertificate);
         tagRepository.deleteGiftCertificateTags(giftCertificate.getId());
@@ -62,20 +64,24 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
     }
 
+    @Transactional
     public void deleteGiftCertificate(Long id) {
         giftCertificateRepository.delete(id);
     }
 
+    @Transactional
     public List<GiftCertificateDto> findGiftCertificatesByTag(String name) {
         List<GiftCertificate> giftCertificateList = giftCertificateRepository.findGiftCertificatesByTag(name);
         return createCertificateDtoList(giftCertificateList);
     }
 
+    @Transactional
     public List<GiftCertificateDto> findGiftCertificatesByNameOrDescription(String searchCondition) {
         List<GiftCertificate> giftCertificateList = giftCertificateRepository.findByMatch(searchCondition);
         return createCertificateDtoList(giftCertificateList);
     }
 
+    @Transactional
     public List<GiftCertificateDto> getGiftCertificatesSortedByCondition(String sortCondition) {
         List<GiftCertificate> giftCertificateList = new ArrayList<>();
         switch (sortCondition) {

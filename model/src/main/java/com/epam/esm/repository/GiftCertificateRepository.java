@@ -11,7 +11,6 @@ import java.util.Optional;
  * giftCertificate data from the database;
  *
  * @author Sviatlana Shelestava
- * @see com.epam.esm.repository.GiftCertificateRepositoryImpl
  * @since 1.0
  */
 public interface GiftCertificateRepository {

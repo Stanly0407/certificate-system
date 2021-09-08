@@ -3,8 +3,15 @@ package com.epam.esm.controllers;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.service.TagService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
 /**
@@ -42,13 +49,12 @@ public class TagController {
      * @throws ResourceNotFoundException if the requested giftCertificate is not found;
      */
     @GetMapping("{id}")
-    public Tag findTag(@PathVariable Long id) throws ResourceNotFoundException {
+    public Tag findTag(@PathVariable @NotNull Long id) throws ResourceNotFoundException {
         Optional<Tag> tag = tagService.findTagById(id);
         if (tag.isPresent()) {
             return tag.get();
         } else {
-            String resource = " (tag id = " + id + ")";
-            throw new ResourceNotFoundException(resource);
+            throw new ResourceNotFoundException(" (tag id = " + id + ")");
         }
     }
 
@@ -64,8 +70,7 @@ public class TagController {
         if (tag.isPresent()) {
             tagService.deleteTag(id);
         } else {
-            String resource = " (tag id " + id + ")";
-            throw new ResourceNotFoundException(resource);
+            throw new ResourceNotFoundException(" (tag id " + id + ")");
         }
     }
 

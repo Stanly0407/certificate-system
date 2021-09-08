@@ -4,7 +4,14 @@ import com.epam.esm.services.dto.GiftCertificateDto;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,8 +58,7 @@ public class GiftCertificateController {
         if (giftCertificateDto.isPresent()) {
             giftCertificateService.updateGiftCertificate(giftCertificate.getGiftCertificate(), giftCertificate.getTags());
         } else {
-            String resource = " (Gift certificate id = " + giftCertificateId + ")";
-            throw new ResourceNotFoundException(resource);
+            throw new ResourceNotFoundException(" (Gift certificate id = " + giftCertificateId + ")");
         }
     }
 
@@ -69,8 +75,7 @@ public class GiftCertificateController {
         if (giftCertificateDto.isPresent()) {
             return giftCertificateDto.get();
         } else {
-            String resource = " (Gift certificate id = " + id + ")";
-            throw new ResourceNotFoundException(resource);
+            throw new ResourceNotFoundException(" (Gift certificate id = " + id + ")");
         }
     }
 
@@ -86,8 +91,7 @@ public class GiftCertificateController {
         if (giftCertificate.isPresent()) {
             giftCertificateService.deleteGiftCertificate(id);
         } else {
-            String resource = " (Gift certificate id " + id + ")";
-            throw new ResourceNotFoundException(resource);
+            throw new ResourceNotFoundException(" (Gift certificate id " + id + ")");
         }
     }
 
@@ -117,7 +121,8 @@ public class GiftCertificateController {
     }
 
     /**
-     * Finds giftCertificates by concrete sort condition and creates a corresponding dto objects;
+     * Finds giftCertificates by sort condition "name", "name-desc", "date" or "date-desc"
+     * and creates a corresponding dto objects;
      *
      * @param sortCondition is sorting condition by creation date or name of giftCertificate
      *                      in descending or descending order;

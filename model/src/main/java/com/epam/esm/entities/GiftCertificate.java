@@ -9,6 +9,7 @@ public class GiftCertificate extends Entity {
     private String name;
     private String description;
     private BigDecimal price;
+    // duration of validity of the GiftCertificate
     private int duration;
     private LocalDateTime createDate;
     private LocalDateTime lastUpdateDate;
