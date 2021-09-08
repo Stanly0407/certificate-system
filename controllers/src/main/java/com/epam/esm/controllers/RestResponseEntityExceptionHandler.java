@@ -7,9 +7,11 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -20,9 +22,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     private static final Logger LOGGER = LogManager.getLogger(RestResponseEntityExceptionHandler.class);
     private static final String INTERNAL_ERROR = "message.exception.internal";
+    private static final String BAD_REQUEST_ERROR = "message.exception.badRequest";
     private static final String PAGE_NOT_FOUND_ERROR = "message.exception.page.notfound";
 
-    @ExceptionHandler(ResourceNotFoundException.class)
+    @ExceptionHandler({ResourceNotFoundException.class})
     protected final ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception,
                                                                                   WebRequest request) {
         Locale locale = request.getLocale();
@@ -35,13 +38,35 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     }
 
     @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
+    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException exception, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
         String errorMessage = ErrorResponse.getMessageForLocale(PAGE_NOT_FOUND_ERROR, locale);
         int errorCode = 40402;
         ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException exception,
+                                                                         HttpHeaders headers, HttpStatus status,
+                                                                         WebRequest request) {
+        Locale locale = request.getLocale();
+        String errorMessage = ErrorResponse.getMessageForLocale(BAD_REQUEST_ERROR, locale);
+        int errorCode = 40001;
+        ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
+        LOGGER.error("Error: " + exception);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class})
+    protected ResponseEntity<Object> handleNotValidPathVariable(Exception exception, WebRequest request) {
+        Locale locale = request.getLocale();
+        String errorMessage = ErrorResponse.getMessageForLocale(BAD_REQUEST_ERROR, locale);
+        int errorCode = 40002;
+        ErrorResponse error = new ErrorResponse(errorMessage, errorCode);
+        LOGGER.error("Error: " + exception + " | Message: " + exception.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
