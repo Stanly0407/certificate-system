@@ -4,9 +4,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
 public class WebMvcAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     @Override
@@ -29,12 +26,6 @@ public class WebMvcAppInitializer extends AbstractAnnotationConfigDispatcherServ
         final DispatcherServlet dispatcherServlet = (DispatcherServlet) super.createDispatcherServlet(servletAppContext);
         dispatcherServlet.setThrowExceptionIfNoHandlerFound(true);
         return dispatcherServlet;
-    }
-
-    @Override
-    public void onStartup(ServletContext servletContext) throws ServletException {
-        super.onStartup(servletContext);
-        servletContext.setInitParameter("spring.profiles.active", "dev");
     }
 
 }
