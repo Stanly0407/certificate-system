@@ -14,9 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TagServiceTest {
@@ -36,23 +37,11 @@ public class TagServiceTest {
 
     @Test
     public void saveNewTagTest() {
-        when(tagRepository.findTagByName(anyString())).thenReturn(Optional.empty());
-        when(tagRepository.save(TEST_TAG)).thenReturn(anyLong());
+        when(tagRepository.save(TEST_TAG.getName())).thenReturn(anyLong());
 
-        tagService.saveNewTag(TEST_TAG);
+        tagService.saveNewTag(TEST_TAG.getName());
 
-        Mockito.verify(tagRepository).findTagByName(anyString());
-        Mockito.verify(tagRepository).save(any(Tag.class));
-    }
-
-    @Test
-    public void saveNewTagTestExistingTag() {
-        when(tagRepository.findTagByName(anyString())).thenReturn(Optional.of(TEST_TAG));
-
-        tagService.saveNewTag(TEST_TAG);
-
-        Mockito.verify(tagRepository).findTagByName(anyString());
-        Mockito.verify(tagRepository, times(0)).save(any(Tag.class));
+        Mockito.verify(tagRepository).save(anyString());
     }
 
     @Test
@@ -64,6 +53,17 @@ public class TagServiceTest {
 
         Assertions.assertEquals(expected, actual);
         Mockito.verify(tagRepository).findById(anyLong());
+    }
+
+    @Test
+    public void findTagByNameTest() {
+        Optional<Tag> actual = Optional.of(TEST_TAG);
+        when(tagRepository.findTagByName(anyString())).thenReturn(Optional.of(TEST_TAG));
+
+        Optional<Tag> expected = tagService.findTagByName("newTag");
+
+        Assertions.assertEquals(expected, actual);
+        Mockito.verify(tagRepository).findTagByName(anyString());
 
     }
 

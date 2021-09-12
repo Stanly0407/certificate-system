@@ -35,8 +35,9 @@ values ('test'),
        ('test2');
 
 insert into certificate(name, description, price, duration, create_date, last_update_date)
-values ('TEST-first', 'first', 10.10, 30, '2021-08-26 10:10:10', '2021-08-26 10:10:10'),
-       ('TEST-second', 'second', 20.20, 15, '2021-08-25 10:10:10', '2021-08-25 10:10:10');
+values ('TEST-first', 'first', 10.10, 30, '2021-08-24 10:10:10', '2021-08-24 10:10:10'),
+       ('TEST-second', 'second', 20.20, 15, '2021-08-25 10:10:10', '2021-08-25 10:10:10'),
+       ('TEST-second-third', 'third', 20.20, 15, '2021-08-26 10:10:10', '2021-08-26 10:10:10');
 
 insert into certificate_tag(certificate_id, tag_id)
 values (1, 2),

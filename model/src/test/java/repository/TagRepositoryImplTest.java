@@ -108,14 +108,15 @@ public class TagRepositoryImplTest {
     @Test
     public void saveGiftCertificateTest() {
         String sqlSelectTagById = "SELECT * FROM tag WHERE id = ";
-        Tag test = new Tag("save");
+        String testTagName ="save";
 
-        Long createdId = tagRepository.save(test);
+        Long createdId = tagRepository.save(testTagName);
+        Tag expected = new Tag(createdId, testTagName);
 
         Tag actual = jdbcTemplate.query(sqlSelectTagById + createdId,
                 new BeanPropertyRowMapper<>(Tag.class)).stream().findAny().orElse(null);
 
-        Assertions.assertEquals(test, actual);
+        Assertions.assertEquals(expected, actual);
     }
 
 }
