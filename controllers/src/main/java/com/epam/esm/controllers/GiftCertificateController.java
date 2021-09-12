@@ -4,6 +4,7 @@ import com.epam.esm.services.dto.GiftCertificateDto;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -96,42 +98,30 @@ public class GiftCertificateController {
     }
 
     /**
-     * Finds giftCertificates by name of the associated tag and creates a corresponding dto objects;
-     *
-     * @param tagName is a unique name of tag;
-     * @return a collection <code>List</code> contains the GiftCertificateDto objects
-     * or empty collection <code>List</code>;
-     */
-    @GetMapping("tag/{name}")
-    public List<GiftCertificateDto> findCertificatesByTag(@PathVariable("name") String tagName) {
-        return giftCertificateService.findGiftCertificatesByTag(tagName);
-    }
-
-    /**
-     * Finds giftCertificates by match in name or description and creates a corresponding dto objects;
-     *
-     * @param searchCondition is a part and whole word that may appear in the name or description
-     *                        of giftCertificate;
-     * @return a collection <code>List</code> contains the GiftCertificateDto objects
-     * or empty collection <code>List</code>;
-     */
-    @GetMapping("search/{condition}")
-    public List<GiftCertificateDto> findCertificatesByNameOrDescription(@PathVariable("condition") String searchCondition) {
-        return giftCertificateService.findGiftCertificatesByNameOrDescription(searchCondition);
-    }
-
-    /**
-     * Finds giftCertificates by sort condition "name", "name-desc", "date" or "date-desc"
+     * Finds giftCertificates by name of the associated tag or by match in name or description
      * and creates a corresponding dto objects;
      *
-     * @param sortCondition is sorting condition by creation date or name of giftCertificate
-     *                      in descending or descending order;
+     * @param tagName    is a unique name of the tag;
+     * @param condition  is a part or whole word that may appear in the name or description of the giftCertificate;
+     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (lastUpdateDate)
+     *                   or "name" of the giftCertificate;
+     * @param order      is an ascending ("acs" by default) or descending ("desc") order of sorting;
      * @return a collection <code>List</code> contains the GiftCertificateDto objects
      * or empty collection <code>List</code>;
      */
-    @GetMapping("sort/{condition}")
-    public List<GiftCertificateDto> getSortedGiftCertificates(@PathVariable("condition") String sortCondition) {
-        return giftCertificateService.getGiftCertificatesSortedByCondition(sortCondition);
+    @GetMapping
+    public ResponseEntity<?> findCertificatesByParams(
+            @RequestParam(required = false) String tagName,
+            @RequestParam(required = false) String condition,
+            @RequestParam(value = "sort", required = false) List<String> sortParams,
+            @RequestParam(required = false) String order) {
+        if ((tagName != null && condition != null) ||
+                !(tagName != null || sortParams != null || order != null || condition != null) ||
+                (sortParams == null && order != null)) {
+            return ResponseEntity.badRequest().build();
+        } else {
+            return ResponseEntity.ok().body(giftCertificateService.findGiftCertificates(tagName, sortParams, order, condition));
+        }
     }
 
 }

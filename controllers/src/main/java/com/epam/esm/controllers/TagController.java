@@ -3,6 +3,8 @@ package com.epam.esm.controllers;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.service.TagService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
 /**
@@ -34,11 +35,16 @@ public class TagController {
     /**
      * Creates a new tag;
      *
-     * @param tag is an entity to be created;
+     * @param tagName is an name of new tag to be created;
      */
     @PostMapping
-    public void createNewTag(@RequestBody Tag tag) {
-        tagService.saveNewTag(tag);
+    public ResponseEntity<?> createNewTag(@RequestBody String tagName) {
+        if (tagService.findTagByName(tagName).isPresent()) {
+            return ResponseEntity.badRequest().build();
+        } else {
+            tagService.saveNewTag(tagName);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        }
     }
 
     /**
@@ -49,7 +55,7 @@ public class TagController {
      * @throws ResourceNotFoundException if the requested giftCertificate is not found;
      */
     @GetMapping("{id}")
-    public Tag findTag(@PathVariable @NotNull Long id) throws ResourceNotFoundException {
+    public Tag findTag(@PathVariable Long id) throws ResourceNotFoundException {
         Optional<Tag> tag = tagService.findTagById(id);
         if (tag.isPresent()) {
             return tag.get();
