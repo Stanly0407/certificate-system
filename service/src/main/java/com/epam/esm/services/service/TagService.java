@@ -17,9 +17,18 @@ public interface TagService {
     /**
      * Creates a new tag;
      *
-     * @param tag is an entity to be created;
+     * @param tagName is an name of new tag to be created;
      */
-    void saveNewTag(Tag tag);
+    void saveNewTag(String tagName);
+
+    /**
+     * Finds tag by id;
+     *
+     * @param tagName is a unique name of the tag;
+     * @return an <code>Optional</code> contains the tag object
+     * or <code>Optional</code> contain a null value;
+     */
+    Optional<Tag> findTagByName(String tagName);
 
     /**
      * Finds tag by id;

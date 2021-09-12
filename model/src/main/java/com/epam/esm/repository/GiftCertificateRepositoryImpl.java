@@ -19,15 +19,12 @@ import java.util.Optional;
 @Repository
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
+    private static final String SELECT_CERTIFICATES = "SELECT * FROM certificate";
     private static final String SELECT_CERTIFICATE_BY_ID = "SELECT * FROM certificate WHERE id =?";
     private static final String SELECT_CERTIFICATES_BY_TAG = "SELECT c.id, c.name, c.description, c.price, c.duration, " +
             "c.create_date, c.last_update_date FROM certificate c JOIN certificate_tag ct ON c.id=ct.certificate_id " +
             "JOIN tag t ON t.id=ct.tag_id WHERE t.name=?";
     private static final String SELECT_CERTIFICATES_WHERE_MATCH = "SELECT * FROM certificate WHERE name like ? OR description LIKE ?";
-    private static final String SELECT_CERTIFICATES_BY_DATE = "SELECT * FROM certificate ORDER BY last_update_date";
-    private static final String SELECT_CERTIFICATES_BY_DATE_DESC = "SELECT * FROM certificate ORDER BY last_update_date DESC";
-    private static final String SELECT_CERTIFICATES_BY_NAME = "SELECT * FROM certificate ORDER BY name";
-    private static final String SELECT_CERTIFICATES_BY_NAME_DESC = "SELECT * FROM certificate ORDER BY name DESC";
     private static final String INSERT_CERTIFICATE = "INSERT INTO certificate (name, description, price, duration, create_date, " +
             "last_update_date) values (?, ?, ?, ?, default, default)";
     private static final String INSERT_CERTIFICATE_TAG = "INSERT INTO certificate_tag (certificate_id, tag_id) values (?, ?)";
@@ -45,39 +42,27 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         jdbcTemplate.update(INSERT_CERTIFICATE_TAG, giftCertificate.getId(), tag.getId());
     }
 
-    public List<GiftCertificate> findGiftCertificatesByTag(String tagName) {
+    public List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName) {
         return jdbcTemplate.query(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_BY_TAG);
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_BY_TAG + query);
             preparedStatement.setObject(1, tagName);
             return preparedStatement;
         }, new BeanPropertyRowMapper<>(GiftCertificate.class));
     }
 
-    public List<GiftCertificate> findByMatch(String searchCondition) {
+    public List<GiftCertificate> findByMatch(String query, String searchCondition) {
         //This sign "%" means any number of characters or no characters at the beginning and at the end of the search condition.
         String condition = "%" + searchCondition + "%";
         return jdbcTemplate.query(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_WHERE_MATCH);
+            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_WHERE_MATCH + query);
             preparedStatement.setObject(1, condition);
             preparedStatement.setObject(2, condition);
             return preparedStatement;
         }, new BeanPropertyRowMapper<>(GiftCertificate.class));
     }
 
-    public List<GiftCertificate> findAllSortedByDate() {
-        return jdbcTemplate.query(SELECT_CERTIFICATES_BY_DATE, new BeanPropertyRowMapper<>(GiftCertificate.class));
-    }
-
-    public List<GiftCertificate> findAllSortedByDateDesc() {
-        return jdbcTemplate.query(SELECT_CERTIFICATES_BY_DATE_DESC, new BeanPropertyRowMapper<>(GiftCertificate.class));
-    }
-
-    public List<GiftCertificate> findAllSortedByName() {
-        return jdbcTemplate.query(SELECT_CERTIFICATES_BY_NAME, new BeanPropertyRowMapper<>(GiftCertificate.class));
-    }
-
-    public List<GiftCertificate> findAllSortedByNameDesc() {
-        return jdbcTemplate.query(SELECT_CERTIFICATES_BY_NAME_DESC, new BeanPropertyRowMapper<>(GiftCertificate.class));
+    public List<GiftCertificate> findAllGiftCertificates(String query) {
+        return jdbcTemplate.query(SELECT_CERTIFICATES + query, new BeanPropertyRowMapper<>(GiftCertificate.class));
     }
 
     public Long save(GiftCertificate giftCertificate) {

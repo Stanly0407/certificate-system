@@ -16,10 +16,10 @@ public interface TagRepository {
     /**
      * Executes the SQL <code>INSERT</code> statement, which creates new tag in the database;
      *
-     * @param tag is an entity to be created;
+     * @param tagName is an name of new tag to be created;
      * @return a <code>Long</code> generated id of the newly created tag
      */
-    Long save(Tag tag);
+    Long save(String tagName);
 
     /**
      * Executes an SQL <code>SELECT</code> statement, which searches for tag by id;

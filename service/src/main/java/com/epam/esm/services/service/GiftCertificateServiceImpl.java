@@ -5,23 +5,26 @@ import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.services.dto.GiftCertificateDto;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
+    private static final Logger LOGGER = LogManager.getLogger(GiftCertificateServiceImpl.class);
     private final GiftCertificateRepository giftCertificateRepository;
     private final TagRepository tagRepository;
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE = "date";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE_DESC = "date-desc";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME = "name";
-    private static final String GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME_DESC = "name-desc";
+    private static final String SORT_BY_NAME = "name";
+    private static final String SORT_BY_DATE = "date";
+    private static final String SORT_ORDER_DESC = "desc";
 
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, TagRepository tagRepository) {
         this.giftCertificateRepository = giftCertificateRepository;
@@ -39,9 +42,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         Long newGiftCertificateId = giftCertificateRepository.save(giftCertificate);
         Optional<GiftCertificate> createdGiftCertificate = giftCertificateRepository.findById(newGiftCertificateId);
         Optional<Tag> newTag;
-        for (Tag tag : tags) {
-            if (checkNewTag(tag)) {
-                Long newTagId = tagRepository.save(tag);
+        Set<Tag> uniqueSetOfTags = getUniqueSetOfTags(tags);
+        for (Tag tag : uniqueSetOfTags) {
+            if (isNewTag(tag)) {
+                Long newTagId = tagRepository.save(tag.getName());
                 newTag = tagRepository.findById(newTagId);
             } else {
                 newTag = tagRepository.findTagByName(tag.getName());
@@ -56,7 +60,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
         giftCertificateRepository.update(giftCertificate);
         tagRepository.deleteGiftCertificateTags(giftCertificate.getId());
-        List<Tag> newTags = tags.stream().filter(this::checkNewTag).collect(Collectors.toList());
+        List<String> newTags = tags.stream().filter(this::isNewTag).map(Tag::getName).collect(Collectors.toList());
         newTags.forEach(tagRepository::save);
         for (Tag tag : tags) {
             Optional<Tag> newTag = tagRepository.findTagByName(tag.getName());
@@ -70,38 +74,45 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Transactional
-    public List<GiftCertificateDto> findGiftCertificatesByTag(String name) {
-        List<GiftCertificate> giftCertificateList = giftCertificateRepository.findGiftCertificatesByTag(name);
-        return createCertificateDtoList(giftCertificateList);
-    }
-
-    @Transactional
-    public List<GiftCertificateDto> findGiftCertificatesByNameOrDescription(String searchCondition) {
-        List<GiftCertificate> giftCertificateList = giftCertificateRepository.findByMatch(searchCondition);
-        return createCertificateDtoList(giftCertificateList);
-    }
-
-    @Transactional
-    public List<GiftCertificateDto> getGiftCertificatesSortedByCondition(String sortCondition) {
-        List<GiftCertificate> giftCertificateList = new ArrayList<>();
-        switch (sortCondition) {
-            case GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE:
-                giftCertificateList = giftCertificateRepository.findAllSortedByDate();
-                break;
-            case GIFT_CERTIFICATES_SORTING_CONDITION_BY_DATE_DESC:
-                giftCertificateList = giftCertificateRepository.findAllSortedByDateDesc();
-                break;
-            case GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME:
-                giftCertificateList = giftCertificateRepository.findAllSortedByName();
-                break;
-            case GIFT_CERTIFICATES_SORTING_CONDITION_BY_NAME_DESC:
-                giftCertificateList = giftCertificateRepository.findAllSortedByNameDesc();
-                break;
+    public List<GiftCertificateDto> findGiftCertificates(String tagName, List<String> sortParams, String order,
+                                                         String searchCondition) {
+        String sortQueryPart = getSortQueryPart(sortParams, order);
+        List<GiftCertificate> giftCertificateList;
+        if (tagName != null) {
+            giftCertificateList = giftCertificateRepository.findGiftCertificatesByTag(sortQueryPart, tagName);
+        } else if (searchCondition != null) {
+            giftCertificateList = giftCertificateRepository.findByMatch(sortQueryPart, searchCondition);
+        } else {
+            giftCertificateList = giftCertificateRepository.findAllGiftCertificates(sortQueryPart);
         }
         return createCertificateDtoList(giftCertificateList);
     }
 
-    private boolean checkNewTag(Tag tag) {
+    private String getSortQueryPart(List<String> sortParams, String order) {
+        StringBuilder sortQueryPart = new StringBuilder();
+        if (sortParams != null) {
+            if (sortParams.contains(SORT_BY_NAME)) {
+                sortQueryPart.append(" ORDER BY name ");
+            } else if (sortParams.size() >= 2) {
+                sortQueryPart.append(" AND ");
+            } else if (sortParams.contains(SORT_BY_DATE)) {
+                sortQueryPart.append(" ORDER BY last_update_date ");
+            }
+            if (SORT_ORDER_DESC.equals(order)) {
+                sortQueryPart.append(" DESC ");
+            }
+        }
+        return new String(sortQueryPart);
+    }
+
+    private Set<Tag> getUniqueSetOfTags(List<Tag> tags) {
+        return tags.stream()
+                .map(Tag::getName)
+                .map(tag -> tagRepository.findTagByName(tag).get())
+                .collect(Collectors.toSet());
+    }
+
+    private boolean isNewTag(Tag tag) {
         return !tagRepository.findTagByName(tag.getName()).isPresent();
     }
 

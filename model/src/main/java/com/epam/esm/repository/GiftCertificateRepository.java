@@ -59,51 +59,31 @@ public interface GiftCertificateRepository {
      * Executes the SQL <code>SELECT</code> statement, which returns
      * a collection of giftCertificates associated with a specific tag in the database;
      *
+     * @param query   is a part of the SQL statement with sorting conditions if exist;
      * @param tagName is the name of a tag that may be associated with some giftCertificates;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findGiftCertificatesByTag(String tagName);
+    List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of tags associated with a specific giftCertificate in database;
+     * a collection of giftCertificates containing in their name or description searchCondition;
      *
+     * @param query           is a part of the SQL statement with sorting conditions if exist;
      * @param searchCondition is a part and whole word that may appear in the name or description
      *                        of the giftCertificate;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findByMatch(String searchCondition);
+    List<GiftCertificate> findByMatch(String query, String searchCondition);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of giftCertificates sorted by date of creation in ascending order;
+     * a collection of all existed giftCertificates;
      *
+     * @param query is a part of the SQL statement with sorting conditions if exist;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findAllSortedByDate();
+    List<GiftCertificate> findAllGiftCertificates(String query);
 
-    /**
-     * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of giftCertificates sorted by date of creation in descending order;
-     *
-     * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
-     */
-    List<GiftCertificate> findAllSortedByDateDesc();
-
-    /**
-     * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of giftCertificates sorted by name in ascending order;
-     *
-     * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
-     */
-    List<GiftCertificate> findAllSortedByName();
-
-    /**
-     * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of giftCertificates sorted by name in descending order;
-     *
-     * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
-     */
-    List<GiftCertificate> findAllSortedByNameDesc();
 
 }

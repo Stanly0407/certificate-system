@@ -54,30 +54,16 @@ public interface GiftCertificateService {
     /**
      * Finds giftCertificates by name of tag and creates a corresponding dto objects;
      *
-     * @param name is a unique name of tag in database;
+     * @param tagName         is a unique name of tag in database;
+     * @param searchCondition is a part and whole word that may appear in the name
+     *                        or description of giftCertificate;
+     * @param sortParams      is a collection <code>List</code> of sorting conditions by "date" (createDate)
+     *                        or "name" of giftCertificate;
+     * @param order           is a ascending ("acs" by default) or descending ("desc") order of sorting;
      * @return a collection <code>List</code> contains the GiftCertificateDto objects
      * or empty collection <code>List</code>;
      */
-    List<GiftCertificateDto> findGiftCertificatesByTag(String name);
-
-    /**
-     * Finds giftCertificates by match in name or description and creates a corresponding dto objects;
-     *
-     * @param searchCondition is a part and whole word that may appear in the name or description
-     *                        of giftCertificate;
-     * @return a collection <code>List</code> contains the GiftCertificateDto objects
-     * or empty collection <code>List</code>;
-     */
-    List<GiftCertificateDto> findGiftCertificatesByNameOrDescription(String searchCondition);
-
-    /**
-     * Finds giftCertificates by concrete sort condition and creates a corresponding dto objects;
-     *
-     * @param sortCondition is sorting condition by creation date or  name of giftCertificate
-     *                         in descending or descending order;
-     * @return a collection <code>List</code> contains the GiftCertificateDto objects
-     * or empty collection <code>List</code>;
-     */
-    List<GiftCertificateDto> getGiftCertificatesSortedByCondition(String sortCondition);
+    List<GiftCertificateDto> findGiftCertificates(String tagName, List<String> sortParams, String order,
+                                                  String searchCondition);
 
 }

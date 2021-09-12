@@ -61,12 +61,12 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
-    public Long save(Tag tag) {
+    public Long save(String tagName) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_TAG,
                     PreparedStatement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, tag.getName());
+            preparedStatement.setString(1, tagName);
             return preparedStatement;
         }, keyHolder);
         return Objects.requireNonNull(keyHolder.getKey()).longValue();

@@ -17,15 +17,18 @@ public class TagServiceImpl implements TagService {
     }
 
     @Transactional
-    public void saveNewTag(Tag tag) {
-        if (!tagRepository.findTagByName(tag.getName()).isPresent()) {
-            tagRepository.save(tag);
-        }
+    public void saveNewTag(String tagName) {
+        tagRepository.save(tagName);
     }
 
     @Transactional
     public Optional<Tag> findTagById(Long id) {
         return tagRepository.findById(id);
+    }
+
+    @Transactional
+    public Optional<Tag> findTagByName(String tagName) {
+        return tagRepository.findTagByName(tagName);
     }
 
     @Transactional
