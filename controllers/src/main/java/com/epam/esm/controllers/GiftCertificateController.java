@@ -1,12 +1,18 @@
 package com.epam.esm.controllers;
 
+import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.services.dto.GiftCertificateDto;
+import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateService;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,8 +21,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * A class {@code GiftCertificateController} as request handler defines method which accepts
@@ -27,12 +45,18 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("certificates")
-public class GiftCertificateController {
+@Validated
+public class GiftCertificateController implements BaseController {
+
+    private static final String PREVIOUS_PAGE = "previousPage";
+    private static final String NEXT_PAGE = "nextPage";
 
     private final GiftCertificateService giftCertificateService;
+    private final LinkBuilder linkBuilder;
 
-    public GiftCertificateController(GiftCertificateService giftCertificateService) {
+    public GiftCertificateController(GiftCertificateService giftCertificateService, LinkBuilder linkBuilder) {
         this.giftCertificateService = giftCertificateService;
+        this.linkBuilder = linkBuilder;
     }
 
     /**
@@ -53,7 +77,7 @@ public class GiftCertificateController {
      * @param giftCertificate is an entity to be updated;
      * @throws ResourceNotFoundException if the resource being updated does not found;
      */
-    @PutMapping
+    @PutMapping // todo CHANGE
     public void updateGiftCertificate(@RequestBody GiftCertificateTagsWrapper giftCertificate) throws ResourceNotFoundException {
         Long giftCertificateId = giftCertificate.getGiftCertificate().getId();
         Optional<GiftCertificateDto> giftCertificateDto = giftCertificateService.findById(giftCertificateId);
@@ -100,28 +124,119 @@ public class GiftCertificateController {
     /**
      * Finds giftCertificates by name of the associated tag or by match in name or description
      * and creates a corresponding dto objects;
+     * <p>
+     * //     * @param tagNames    is a unique name of the tag;
+     * //     * @param condition  is a part or whole word that may appear in the name or description of the giftCertificate;
+     * //     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (lastUpdateDate)
+     * //     *                   or "name" of the giftCertificate;
+     * //     * @param order      is an ascending ("acs" by default) or descending ("desc") order of sorting;
      *
-     * @param tagName    is a unique name of the tag;
-     * @param condition  is a part or whole word that may appear in the name or description of the giftCertificate;
-     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (lastUpdateDate)
-     *                   or "name" of the giftCertificate;
-     * @param order      is an ascending ("acs" by default) or descending ("desc") order of sorting;
      * @return a collection <code>List</code> contains the GiftCertificateDto objects
      * or empty collection <code>List</code>;
      */
     @GetMapping
     public ResponseEntity<?> findCertificatesByParams(
-            @RequestParam(required = false) String tagName,
+            @RequestParam(required = false, value = "tag") List<String> tagNames,
             @RequestParam(required = false) String condition,
             @RequestParam(value = "sort", required = false) List<String> sortParams,
-            @RequestParam(required = false) String order) {
-        if ((tagName != null && condition != null) ||
-                !(tagName != null || sortParams != null || order != null || condition != null) ||
-                (sortParams == null && order != null)) {
-            return ResponseEntity.badRequest().build();
+            @RequestParam(required = false) String order,
+            @RequestParam("page") int pageNumber,
+            @RequestParam("size") int pageSize) throws BadRequestException {
+
+        if ((tagNames != null && condition != null) || (sortParams == null && order != null)) {
+            throw new BadRequestException("params", 40003);
         } else {
-            return ResponseEntity.ok().body(giftCertificateService.findGiftCertificates(tagName, sortParams, order, condition));
+            List<GiftCertificate> giftCertificates = giftCertificateService.findGiftCertificates(tagNames, sortParams, order, condition, pageNumber, pageSize);
+
+            if (!giftCertificates.isEmpty()) {
+                linkBuilder.addSelfLinks(giftCertificates, GiftCertificateController.class);
+
+                long pageQuantity = giftCertificateService.getPaginationInfo(pageNumber, pageSize, tagNames, condition);
+                Map<String, Object> params = BaseController.getPaginationInfo(pageQuantity, pageNumber);
+                String uriString = linkTo(methodOn(GiftCertificateController.class)
+                        .findCertificatesByParams(tagNames, condition, sortParams, order, pageNumber, pageSize))
+                        .toUriComponentsBuilder().buildAndExpand().toString();
+                params.put("tag", tagNames);
+                params.put("sort", sortParams);
+                params.put("order", order);
+                params.put("condition", condition);
+                params.put("page", pageNumber);
+                params.put("size", pageSize);
+                params.put("uri", uriString);
+
+                List<Link> links = linkBuilder.createPaginationLinks(params, GiftCertificateController.class);
+
+                CollectionModel<GiftCertificate> result = CollectionModel.of(giftCertificates, links);
+
+                return ResponseEntity.ok().body(result);
+            } else {
+                return ResponseEntity.ok().body(giftCertificates); //empty collection
+            }
         }
     }
+
+    private List<Link> createPaginationLinks(Map<String, Object> pages, int pageSize, List<String> tagNames, String condition,
+                                             List<String> sortParams, String order) throws BadRequestException {
+        List<Link> links = new ArrayList<>();
+
+        if (pages.containsKey(PREVIOUS_PAGE)) {
+            int previousPage = (int) pages.get(PREVIOUS_PAGE);
+            Link previousPageLink = linkTo(methodOn(GiftCertificateController.class)
+                    .findCertificatesByParams(tagNames, condition, sortParams, order, previousPage, pageSize))
+                    .withRel(PREVIOUS_PAGE).expand();
+            links.add(previousPageLink);
+        }
+        if (pages.containsKey(NEXT_PAGE)) {
+            int nextPage = (int) pages.get(NEXT_PAGE);
+            Link nextPageLink = linkTo(methodOn(GiftCertificateController.class)
+                    .findCertificatesByParams(tagNames, condition, sortParams, order, nextPage, pageSize))
+                    .withRel(NEXT_PAGE).expand();
+            links.add(nextPageLink);
+        }
+        return links;
+    }
+
+    @PatchMapping("{id}")
+    public ResponseEntity<?> partialUpdateGiftCertificate(
+            @PathVariable Long id,
+            @RequestParam(required = false) @Size(min = 2, max = 30) String name,
+            @RequestParam(required = false) @Size(min = 2, max = 250) String description,
+            @RequestParam(required = false)
+            @DecimalMin(value = "0.0", inclusive = false) @Digits(integer = 10, fraction = 2) BigDecimal price,
+            @RequestParam(required = false) @Min(1) @Max(90) Integer duration)
+            throws ResourceNotFoundException {
+
+        Optional<GiftCertificateDto> giftCertificateDto = giftCertificateService.findById(id);
+
+        Map<String, Object> updates = new HashMap<>();
+        if (name != null) {
+            updates.put("name", name);
+        }
+        if (description != null) {
+            updates.put("description", description);
+        }
+        if (price != null) {
+            updates.put("price", price);
+        }
+        if (duration != null) {
+            updates.put("duration", duration);
+        }
+
+        boolean isSuccessfulUpdated = false;
+        if (giftCertificateDto.isPresent()) {
+            if (updates.size() == 1) {
+                isSuccessfulUpdated = giftCertificateService.partialGiftCertificateUpdate(updates, id);
+            }
+        } else {
+            throw new ResourceNotFoundException(" (Gift certificate id = " + id + ")");
+        }
+
+        if (isSuccessfulUpdated) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 
 }

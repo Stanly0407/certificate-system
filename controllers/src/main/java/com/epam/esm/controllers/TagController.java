@@ -1,10 +1,12 @@
 package com.epam.esm.controllers;
 
 import com.epam.esm.entities.Tag;
+import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.service.TagService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Optional;
 
 /**
@@ -24,6 +28,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("tags")
+@Validated
 public class TagController {
 
     private final TagService tagService;
@@ -35,14 +40,18 @@ public class TagController {
     /**
      * Creates a new tag;
      *
-     * @param tagName is an name of new tag to be created;
+     * @param tag is a new tag to be created;
      */
     @PostMapping
-    public ResponseEntity<?> createNewTag(@RequestBody String tagName) {
-        if (tagService.findTagByName(tagName).isPresent()) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> createNewTag(@RequestBody @Valid Tag tag) throws BadRequestException {
+        String tagName = tag.getName();
+        Optional<Tag> tagOptional = tagService.findTagByName(tagName);
+        if (tagOptional.isPresent()) {
+            throw new BadRequestException("exists", 40005);
+        } else if (tag.getId() != null) {
+            throw new BadRequestException("invalid.input", 40004);
         } else {
-            tagService.saveNewTag(tagName);
+            tagService.saveNewTag(Tag.builder().name(tagName).build());
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
     }
@@ -52,10 +61,10 @@ public class TagController {
      *
      * @param id is a unique field of the tag;
      * @return the tag object
-     * @throws ResourceNotFoundException if the requested giftCertificate is not found;
+     * @throws ResourceNotFoundException if the requested tag is not found;
      */
     @GetMapping("{id}")
-    public Tag findTag(@PathVariable Long id) throws ResourceNotFoundException {
+    public Tag getTagById(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
         Optional<Tag> tag = tagService.findTagById(id);
         if (tag.isPresent()) {
             return tag.get();
@@ -74,10 +83,21 @@ public class TagController {
     public void deleteTag(@PathVariable Long id) throws ResourceNotFoundException {
         Optional<Tag> tag = tagService.findTagById(id);
         if (tag.isPresent()) {
-            tagService.deleteTag(id);
+            tagService.deleteTag(tag.get());
         } else {
             throw new ResourceNotFoundException(" (tag id " + id + ")");
         }
     }
+
+    @GetMapping("/widely-used")
+    public Tag getMostWidelyUsedTagOfUserWithHighestCostOrders() throws ResourceNotFoundException {
+        Optional<Tag> tag = tagService.getMostWidelyUsedTagOfUserWithHighestCostOrders();
+        if (tag.isPresent()) {
+            return tag.get();
+        } else {
+            throw new ResourceNotFoundException(" - the most widely used tag of a user with the highest cost of all orders.");
+        }
+    }
+
 
 }
