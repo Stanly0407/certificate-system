@@ -17,9 +17,9 @@ public interface TagService {
     /**
      * Creates a new tag;
      *
-     * @param tagName is an name of new tag to be created;
+     * @param tag is a tag to be created;
      */
-    void saveNewTag(String tagName);
+    void saveNewTag(Tag tag);
 
     /**
      * Finds tag by id;
@@ -42,8 +42,10 @@ public interface TagService {
     /**
      * Deletes tag from a database by its id;
      *
-     * @param id is a unique field of tag in the database;
+     * @param tag is tag in the database;
      */
-    void deleteTag(Long id);
+    void deleteTag(Tag tag);
+
+    Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }

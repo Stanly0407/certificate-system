@@ -4,7 +4,9 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.dto.GiftCertificateDto;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -63,7 +65,12 @@ public interface GiftCertificateService {
      * @return a collection <code>List</code> contains the GiftCertificateDto objects
      * or empty collection <code>List</code>;
      */
-    List<GiftCertificateDto> findGiftCertificates(String tagName, List<String> sortParams, String order,
-                                                  String searchCondition);
+    List<GiftCertificate> findGiftCertificates(List<String> tagName, List<String> sortParams, String order,
+                                                  String searchCondition, int pageNumber, int pageSize);
+
+   // Map<String, Integer>
+    long getPaginationInfo(int pageNumber, int pageSize, List<String> tagNames, String searchCondition);
+
+    boolean partialGiftCertificateUpdate(Map<String, Object> updates,  Long id);
 
 }

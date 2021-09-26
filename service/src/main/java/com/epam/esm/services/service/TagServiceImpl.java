@@ -17,8 +17,8 @@ public class TagServiceImpl implements TagService {
     }
 
     @Transactional
-    public void saveNewTag(String tagName) {
-        tagRepository.save(tagName);
+    public void saveNewTag(Tag tag) {
+        tagRepository.save(tag);
     }
 
     @Transactional
@@ -32,8 +32,13 @@ public class TagServiceImpl implements TagService {
     }
 
     @Transactional
-    public void deleteTag(Long id) {
-        tagRepository.delete(id);
+    public void deleteTag(Tag tag) {
+        tagRepository.delete(tag);
+    }
+
+    @Override
+    public Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
+        return tagRepository.getMostWidelyUsedTagOfUserWithHighestCostOrders();
     }
 
 }
