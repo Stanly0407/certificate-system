@@ -63,7 +63,7 @@ public interface GiftCertificateRepository {
      * @param tagName is the name of a tag that may be associated with some giftCertificates;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName);
+    List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName, int pageNumber, int pageSize);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
@@ -74,7 +74,7 @@ public interface GiftCertificateRepository {
      *                        of the giftCertificate;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findByMatch(String query, String searchCondition);
+    List<GiftCertificate> findByMatch(String query, String searchCondition, int pageNumber, int pageSize);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
@@ -83,7 +83,12 @@ public interface GiftCertificateRepository {
      * @param query is a part of the SQL statement with sorting conditions if exist;
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findAllGiftCertificates(String query);
+    List<GiftCertificate> findAllGiftCertificates(String query, int pageNumber, int pageSize);
 
+    void partialGiftCertificateUpdate(String parameterName, String parameter, Long giftCertificateId);
+
+    List<GiftCertificate> findGiftCertificateBySeveralTags(String queryPart, List<String> tags, int pageNumber, int pageSize);
+
+    long getGiftCertificateCommonQuantity();
 
 }

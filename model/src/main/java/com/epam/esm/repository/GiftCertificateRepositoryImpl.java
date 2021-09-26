@@ -2,103 +2,141 @@ package com.epam.esm.repository;
 
 import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import com.epam.esm.entities.User;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
-import java.sql.Types;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Repository
+@Transactional
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
-    private static final String SELECT_CERTIFICATES = "SELECT * FROM certificate";
-    private static final String SELECT_CERTIFICATE_BY_ID = "SELECT * FROM certificate WHERE id =?";
-    private static final String SELECT_CERTIFICATES_BY_TAG = "SELECT c.id, c.name, c.description, c.price, c.duration, " +
-            "c.create_date, c.last_update_date FROM certificate c JOIN certificate_tag ct ON c.id=ct.certificate_id " +
-            "JOIN tag t ON t.id=ct.tag_id WHERE t.name=?";
-    private static final String SELECT_CERTIFICATES_WHERE_MATCH = "SELECT * FROM certificate WHERE name like ? OR description LIKE ?";
-    private static final String INSERT_CERTIFICATE = "INSERT INTO certificate (name, description, price, duration, create_date, " +
-            "last_update_date) values (?, ?, ?, ?, default, default)";
-    private static final String INSERT_CERTIFICATE_TAG = "INSERT INTO certificate_tag (certificate_id, tag_id) values (?, ?)";
-    private static final String UPDATE_CERTIFICATE = "UPDATE certificate SET name=?, description=?, price=?, duration=?, " +
-            "last_update_date=default WHERE id=?";
-    private static final String DELETE_CERTIFICATE_BY_ID = "DELETE FROM certificate WHERE id=?";
+    private static final String SELECT_CERTIFICATES = "SELECT c FROM GiftCertificate c ";
+    private static final String SELECT_CERTIFICATES_BY_TAG = "SELECT c FROM GiftCertificate c " +
+            "JOIN c.tags t WHERE t.name= :tagName ";
+    private static final String SELECT_CERTIFICATES_WHERE_MATCH = "SELECT c FROM GiftCertificate c " +
+            "WHERE c.name like :searchCondition OR c.description LIKE :searchCondition";
+    private static final String INSERT_CERTIFICATE_TAG = "insert into certificate_tag (certificate_id, tag_id) " +
+            "values ( :giftCertificateId, :tagId );";
+    private static final String UPDATE_CERTIFICATE = "UPDATE GiftCertificate c SET c.name= :name, c.description= :description, " +
+            "c.price= :price, c.duration= :duration, c.lastUpdateDate= current_timestamp WHERE c.id= :id";
+    private static final String SELECT_CERTIFICATES_BY_SEVERAL_TAGS = "SELECT c FROM GiftCertificate c " +
+            "JOIN c.tags t where t.name in (:tags) group by c.id having COUNT(DISTINCT t.name) = :tagsCount";
 
-    private final JdbcTemplate jdbcTemplate;
 
-    public GiftCertificateRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @PersistenceContext
+    EntityManager entityManager;
+
+    public GiftCertificateRepositoryImpl() {
     }
 
+    @Modifying
     public void addTagToGiftCertificate(GiftCertificate giftCertificate, Tag tag) {
-        jdbcTemplate.update(INSERT_CERTIFICATE_TAG, giftCertificate.getId(), tag.getId());
+        Query query = entityManager.createNativeQuery(INSERT_CERTIFICATE_TAG);
+        query.setParameter("giftCertificateId", giftCertificate.getId());
+        query.setParameter("tagId", tag.getId());
+        query.executeUpdate();
     }
 
-    public List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName) {
-        return jdbcTemplate.query(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_BY_TAG + query);
-            preparedStatement.setObject(1, tagName);
-            return preparedStatement;
-        }, new BeanPropertyRowMapper<>(GiftCertificate.class));
-    }
-
-    public List<GiftCertificate> findByMatch(String query, String searchCondition) {
+    public List<GiftCertificate> findByMatch(String queryPart, String searchCondition, int pageNumber, int pageSize) {
         //This sign "%" means any number of characters or no characters at the beginning and at the end of the search condition.
         String condition = "%" + searchCondition + "%";
-        return jdbcTemplate.query(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATES_WHERE_MATCH + query);
-            preparedStatement.setObject(1, condition);
-            preparedStatement.setObject(2, condition);
-            return preparedStatement;
-        }, new BeanPropertyRowMapper<>(GiftCertificate.class));
+        Query query = entityManager.createQuery(SELECT_CERTIFICATES_WHERE_MATCH + queryPart, GiftCertificate.class);
+        query.setParameter("searchCondition", condition);
+        query.setFirstResult((pageNumber - 1) * pageSize);
+        query.setMaxResults(pageSize);
+        return query.getResultList();
     }
 
-    public List<GiftCertificate> findAllGiftCertificates(String query) {
-        return jdbcTemplate.query(SELECT_CERTIFICATES + query, new BeanPropertyRowMapper<>(GiftCertificate.class));
+
+    public List<GiftCertificate> findAllGiftCertificates(String queryPart, int pageNumber, int pageSize) {
+        Query query = entityManager.createQuery(SELECT_CERTIFICATES + queryPart, GiftCertificate.class);
+        if (pageNumber != 0 && pageSize != 0) {
+            query.setFirstResult((pageNumber - 1) * pageSize);
+            query.setMaxResults(pageSize);
+        }
+        return query.getResultList();
+    }
+
+    @Override
+    public void partialGiftCertificateUpdate(String parameterName, String parameter, Long giftCertificateId) {
+        String UPDATE_CERTIFICATE = "UPDATE certificate c SET c." + parameterName + "= :updatedField WHERE c.id= :id";
+        Query query = entityManager.createNativeQuery(UPDATE_CERTIFICATE);
+        query.setParameter("updatedField", parameter);
+        query.setParameter("id", giftCertificateId);
+        query.executeUpdate();
+    }
+
+    public List<GiftCertificate> findGiftCertificatesByTag(String queryPart, String tagName, int pageNumber, int pageSize) {
+        String queryString = SELECT_CERTIFICATES_BY_TAG + queryPart;
+        Query query = entityManager.createQuery(queryString, GiftCertificate.class);
+        query.setParameter("tagName", tagName);
+        if (pageNumber != 0 && pageSize != 0) {
+            query.setFirstResult((pageNumber - 1) * pageSize);
+            query.setMaxResults(pageSize);
+        }
+        return query.getResultList();
+    }
+
+    public List<GiftCertificate> findGiftCertificateBySeveralTags(String queryPart, List<String> tags, int pageNumber, int pageSize) {
+        long tagsCount = tags.size();
+        String queryString = SELECT_CERTIFICATES_BY_SEVERAL_TAGS + queryPart;
+        Query query = entityManager.createQuery(queryString, GiftCertificate.class);
+        query.setParameter("tags", tags);
+        query.setParameter("tagsCount", tagsCount);
+        if (pageNumber != 0 && pageSize != 0) {
+            query.setFirstResult((pageNumber - 1) * pageSize);
+            query.setMaxResults(pageSize);
+        }
+        return query.getResultList();
+
     }
 
     public Long save(GiftCertificate giftCertificate) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        // The key holder contains several generated keys (includes fields createDate and lastUpdateDate),
-        // so PreparedStatementCreatorFactory is used
-        PreparedStatementCreatorFactory statementCreatorFactory = new PreparedStatementCreatorFactory(INSERT_CERTIFICATE,
-                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER);
-        statementCreatorFactory.setReturnGeneratedKeys(true);
-        statementCreatorFactory.setGeneratedKeysColumnNames("id");
-
-        PreparedStatementCreator preparedStatementCreator = statementCreatorFactory.newPreparedStatementCreator(
-                new Object[]{giftCertificate.getName(), giftCertificate.getDescription(), giftCertificate.getPrice(),
-                        giftCertificate.getDuration()});
-
-        jdbcTemplate.update(preparedStatementCreator, keyHolder);
-
-        return Objects.requireNonNull(keyHolder.getKey()).longValue();
+        entityManager.persist(giftCertificate);
+        entityManager.flush();
+        return giftCertificate.getId();
     }
 
-    public Optional<GiftCertificate> findById(Long id) {
-        return jdbcTemplate.query(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(SELECT_CERTIFICATE_BY_ID);
-            preparedStatement.setObject(1, id);
-            return preparedStatement;
-        }, new BeanPropertyRowMapper<>(GiftCertificate.class))
-                .stream().findAny();
+    public Optional<GiftCertificate> findById(Long giftRepositoryId) {
+        Query query = entityManager.createQuery("select c from GiftCertificate c where c.id = :id", GiftCertificate.class);
+        query.setParameter("id", giftRepositoryId);
+        // if use getSingleResult(); - need try/catch NoResultException
+        List<GiftCertificate> giftCertificates = query.getResultList();
+        if (giftCertificates.isEmpty()) {
+            return Optional.empty();
+        } else {
+            GiftCertificate giftCertificate = giftCertificates.get(0);
+            return Optional.of(giftCertificate);
+        }
     }
 
     public void update(GiftCertificate giftCertificate) {
-        jdbcTemplate.update(UPDATE_CERTIFICATE, giftCertificate.getName(), giftCertificate.getDescription(),
-                giftCertificate.getPrice(), giftCertificate.getDuration(), giftCertificate.getId());
+        Query query = entityManager.createQuery(UPDATE_CERTIFICATE);
+        query.setParameter("name", giftCertificate.getName());
+        query.setParameter("description", giftCertificate.getDescription());
+        query.setParameter("price", giftCertificate.getPrice());
+        query.setParameter("duration", giftCertificate.getDuration());
+        query.setParameter("id", giftCertificate.getId()); // todo change
+        query.executeUpdate();
     }
 
     public void delete(Long id) {
-        jdbcTemplate.update(DELETE_CERTIFICATE_BY_ID, id);
+        GiftCertificate giftCertificate = entityManager.find(GiftCertificate.class, id);
+        entityManager.remove(giftCertificate);
     }
+
+    public long getGiftCertificateCommonQuantity() {
+        Query queryTotal = entityManager.createQuery("Select count(c.id) from GiftCertificate c"); //todo const
+        return (long) queryTotal.getSingleResult();
+    }
+
 
 }
