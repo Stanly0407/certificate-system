@@ -13,7 +13,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -23,130 +22,108 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
 import java.util.Locale;
 
+import static com.epam.esm.services.exceptions.ExceptionMessageType.INCORRECT_PARAMETERS;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.INTERNAL_ERROR;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.INVALID_INPUT;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.INVALID_PATH_VARIABLE;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.METHOD_NOT_SUPPORTED;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.MISSING_PATH_VARIABLE;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUNT_PAGE;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUNT_RESOURCE;
+
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(RestResponseEntityExceptionHandler.class);
-    private static final String INTERNAL_ERROR = "message.exception.internal";
-    private static final String BAD_REQUEST_ERROR = "message.exception.badRequest";
-    private static final String PAGE_NOT_FOUND_ERROR = "message.exception.page.notfound";
 
     @ExceptionHandler({BadRequestException.class})
     protected final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException exception, WebRequest request) {
         Locale locale = request.getLocale();
-        String messageKey = "message.exception.badRequest."+ exception.getMessageKey();
-        String errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
-        int errorCode = exception.getErrorCode();
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
+        ErrorResponse error = exception.getErrorResponse(locale);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-// codes:
-// 40001 - common.
-// 40002 - RequestMethodNotSupported.
-// 40003 - The request contain incorrect parameters
-// 40004- invalid input
-// 40005 - exists
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException exception,
+                                                                         HttpHeaders headers, HttpStatus status, WebRequest request) {
+        Locale locale = request.getLocale();
+        BadRequestException badRequestException = BadRequestException.builder().type(METHOD_NOT_SUPPORTED).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({ResourceNotFoundException.class})
     protected final ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception,
                                                                                   WebRequest request) {
         Locale locale = request.getLocale();
-        exception.setLocale(locale);
-        String errorMessage = exception.getLocalizedMessage() + exception.getResource();
-        int errorCode = ResourceNotFoundException.getErrorCode();
-        LOGGER.debug("errorMessage = " + errorMessage);
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
-        return new ResponseEntity<>(error, ResourceNotFoundException.getHttpStatus());
+        exception.setType(NOT_FOUNT_RESOURCE);
+        ErrorResponse error = exception.getErrorResponse(locale);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
-
-
-    @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException exception,
-                                                                         HttpHeaders headers, HttpStatus status, WebRequest request) {
-        Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(
-                "message.exception.badRequest.RequestMethodNotSupported", locale);
-        int errorCode = 40002; // Http request method not supported
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
 
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException exception, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(PAGE_NOT_FOUND_ERROR, locale);
-        int errorCode = 40402;
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
+        ResourceNotFoundException resourceNotFoundException = ResourceNotFoundException.builder().type(NOT_FOUNT_PAGE).build();
+        ErrorResponse error = resourceNotFoundException.getErrorResponse(locale);
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-
+    // if invalid request body
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception, HttpHeaders headers,
+                                                                  HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(BAD_REQUEST_ERROR, locale);
-
-        int errorCode = 1111;
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage + exception.getMessage())
-                .errorCode(errorCode).build();
-        return  ResponseEntity.status( HttpStatus.BAD_REQUEST).body(error);
-      //  return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        BadRequestException badRequestException = BadRequestException.builder().type(INVALID_INPUT).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        return ResponseEntity.badRequest().body(error);
     }
 
-    // handle @Validated
+    // if invalid request parameters
     @ExceptionHandler(ConstraintViolationException.class)
-    ResponseEntity<?> exceptionHandler(ConstraintViolationException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage() + " ++++++++++");
+    protected ResponseEntity<?> exceptionHandler(ConstraintViolationException exception, WebRequest request) {
+        Locale locale = request.getLocale();
+        BadRequestException badRequestException = BadRequestException.builder().type(INCORRECT_PARAMETERS).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-
     @Override
-    protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException exception,
-                                                               HttpHeaders headers, HttpStatus status,
-                                                               WebRequest request) {
+    protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException exception, HttpHeaders headers,
+                                                               HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(BAD_REQUEST_ERROR, locale);
-        //  + "Exception: " + exception.getMessage() // todo new logging
-
-        int errorCode = 2222;
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        BadRequestException badRequestException = BadRequestException.builder().type(MISSING_PATH_VARIABLE).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class})
-    protected ResponseEntity<Object> handleNotValidPathVariable(Exception exception, WebRequest request) {
+    protected ResponseEntity<Object> handleNotValidPathVariable(WebRequest request) {
         Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(BAD_REQUEST_ERROR, locale);
-        //  + "Exception: " + exception.getMessage() // todo new logging
-
-        int errorCode = 40005;
-        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
-        return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error + " ++++++++++");
-       // return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        BadRequestException badRequestException = BadRequestException.builder().type(INVALID_PATH_VARIABLE).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        return ResponseEntity.badRequest().body(error);
     }
 
+    // if invalid params in request body
     @ExceptionHandler(ValidationException.class)
-    ResponseEntity<?> exceptionHandler(ValidationException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage() + "  3333333333");
+    ResponseEntity<?> exceptionHandler(ValidationException exception, WebRequest request) {
+        Locale locale = request.getLocale();
+        BadRequestException badRequestException = BadRequestException.builder().type(INVALID_INPUT).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        error.setErrorMessage(exception.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
-
-
 
     @Override
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<Object> handleExceptionInternal(Exception exception, Object body, HttpHeaders headers,
                                                              HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
-        String errorMessage = ErrorResponse.getMessageForLocale(INTERNAL_ERROR, locale);
-        int errorCode = 50001;
-        ErrorResponse error = ErrorResponse.builder()
-                .errorMessage((errorMessage + " + " + exception.getMessage() + " + " + exception))
-                .errorCode(errorCode).build();
+        String errorMessage = ErrorResponse.getMessageForLocale(INTERNAL_ERROR.getMessageKey(), locale);
+        int errorCode = INTERNAL_ERROR.getErrorCode();
+        ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
         LOGGER.error("Internal Error: " + exception + " | Message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

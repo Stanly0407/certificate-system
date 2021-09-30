@@ -2,7 +2,6 @@ package com.epam.esm.services.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,8 +18,20 @@ import java.util.Locale;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class BadRequestException extends Exception {
 
-    private String messageKey;
+    private static final String BAD_REQUEST_ERROR_KEY = "message.exception.badRequest.";
+    private ExceptionMessageType type;
+    private ErrorResponse errorResponse;
 
-    private int errorCode;
+    public BadRequestException(ExceptionMessageType type) {
+        this.type = type;
+    }
+
+    public ErrorResponse getErrorResponse(Locale locale){
+        String messageKey = BAD_REQUEST_ERROR_KEY + this.type.getMessageKey();
+        String errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
+        int errorCode = this.type.getErrorCode();
+        return ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
+    }
+
 
 }

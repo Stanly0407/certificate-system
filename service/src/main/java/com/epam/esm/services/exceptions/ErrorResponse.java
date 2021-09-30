@@ -17,6 +17,7 @@ import java.util.ResourceBundle;
 public class ErrorResponse {
 
     private static final String BUNDLE_BASE_NAME = "messages";
+
     private String errorMessage;
     private int errorCode;
 
