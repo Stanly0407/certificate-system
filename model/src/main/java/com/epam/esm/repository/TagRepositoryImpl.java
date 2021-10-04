@@ -17,12 +17,11 @@ public class TagRepositoryImpl implements TagRepository {
     private static final String SELECT_TAG_BY_NAME = "SELECT t FROM Tag t WHERE t.name= :name";
     private static final String SELECT_GIFT_CERTIFICATE_TAGS = "SELECT t FROM Tag t JOIN GiftCertificate g WHERE g.id= ?1";
     private static final String DELETE_GIFT_CERTIFICATE_TAGS = "DELETE FROM certificate_tag WHERE certificate_id= :giftCertificateId";
-    private static final String SELECT_WIDELY_USED_TAG = "select t.id, t.name from tag t where t.id = " +
-            "(select id from (select t.id, count(*) as used_count from tag t JOIN certificate_tag ct ON t.id=ct.tag_id \n" +
-            "JOIN certificate c ON c.id=ct.certificate_id JOIN purchase_order po ON c.id=po.certificate_id \n" +
-            "JOIN user u ON po.user_id=u.id WHERE u.id = (select id from(select u.id from user u where id =(SELECT id from " +
-            "(SELECT u.id, SUM(order_price) AS total_cost FROM purchase_order po JOIN user u ON po.user_id=u.id " +
-            "GROUP BY u.id order by total_cost desc limit 1) as res)) as r) group by t.id order by t.id  limit 1) as res)";
+    private static final String SELECT_WIDELY_USED_TAG = "select t.id, t.name , count(*) as used_count from tag t \n" +
+            " JOIN certificate_tag ct ON t.id=ct.tag_id JOIN certificate c ON c.id=ct.certificate_id \n" +
+            " JOIN purchase_order po ON c.id=po.certificate_id JOIN ( SELECT u.id, SUM(order_price) AS total_cost \n" +
+            " FROM purchase_order po JOIN user u ON po.user_id=u.id GROUP BY u.id order by total_cost desc limit 1 ) " +
+            " as res ON po.user_id=res.id group by t.id , t.name order by used_count desc limit 1;";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -47,10 +46,6 @@ public class TagRepositoryImpl implements TagRepository {
         query.executeUpdate();
     }
 
-    public List<Tag> findGiftCertificateTags(Long giftCertificateId) { // todo DELETE
-        return entityManager.createQuery(SELECT_GIFT_CERTIFICATE_TAGS, Tag.class).getResultList();
-    }
-
     @Override
     public Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
         Tag tag = (Tag) entityManager.createNativeQuery(SELECT_WIDELY_USED_TAG, Tag.class).getSingleResult();
@@ -62,14 +57,12 @@ public class TagRepositoryImpl implements TagRepository {
         Query query = entityManager.createQuery("select t from Tag t where t.id = :id", Tag.class);
         query.setParameter("id", tagId);
         List<Tag> tags = query.getResultList();  // if use getSingleResult(); - need try/catch NoResultException
-        if(tags.isEmpty()){
+        if (tags.isEmpty()) {
             return Optional.empty();
         } else {
             Tag tag = tags.get(0);
             return Optional.of(tag);
         }
-     //   Tag tag = entityManager.find(Tag.class, id);
-      //  return Optional.of(entityManager.find(Tag.class, id));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.entities.Tag;
 import com.epam.esm.entities.User;
 import org.springframework.stereotype.Repository;
 
@@ -27,7 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
         Query query = entityManager.createQuery("select u from User u where u.id = :id", User.class);
         query.setParameter("id", userId);
         List<User> users = query.getResultList();  // if use getSingleResult(); - need try/catch NoResultException
-        if(users.isEmpty()){
+        if (users.isEmpty()) {
             return Optional.empty();
         } else {
             User user = users.get(0);

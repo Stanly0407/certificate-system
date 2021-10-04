@@ -2,7 +2,6 @@ package com.epam.esm.repository;
 
 import com.epam.esm.entities.Tag;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -56,13 +55,11 @@ public interface TagRepository {
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of tags associated with a specific giftCertificate in the database;
+     * the most widely used tag of a user with the highest cost of all orders;
      *
-     * @param giftCertificateId is a unique field of giftCertificate in the database;
-     * @return a collection <code>List</code> contains the tags or empty collection <code>List</code>;
+     * @return an <code>Optional</code> contains the tag with matching name
+     * or <code>Optional</code> contain a null value;
      */
-    List<Tag> findGiftCertificateTags(Long giftCertificateId); // todo DELETE
-
     Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }
