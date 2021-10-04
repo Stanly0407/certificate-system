@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -40,6 +41,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException exception, WebRequest request) {
         Locale locale = request.getLocale();
         ErrorResponse error = exception.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -49,6 +51,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         Locale locale = request.getLocale();
         BadRequestException badRequestException = BadRequestException.builder().type(METHOD_NOT_SUPPORTED).build();
         ErrorResponse error = badRequestException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -58,6 +61,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         Locale locale = request.getLocale();
         exception.setType(NOT_FOUNT_RESOURCE);
         ErrorResponse error = exception.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
@@ -67,25 +71,26 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         Locale locale = request.getLocale();
         ResourceNotFoundException resourceNotFoundException = ResourceNotFoundException.builder().type(NOT_FOUNT_PAGE).build();
         ErrorResponse error = resourceNotFoundException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    // if invalid request body
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception, HttpHeaders headers,
                                                                   HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
         BadRequestException badRequestException = BadRequestException.builder().type(INVALID_INPUT).build();
         ErrorResponse error = badRequestException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return ResponseEntity.badRequest().body(error);
     }
 
-    // if invalid request parameters
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<?> exceptionHandler(ConstraintViolationException exception, WebRequest request) {
         Locale locale = request.getLocale();
         BadRequestException badRequestException = BadRequestException.builder().type(INCORRECT_PARAMETERS).build();
         ErrorResponse error = badRequestException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
@@ -95,6 +100,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         Locale locale = request.getLocale();
         BadRequestException badRequestException = BadRequestException.builder().type(MISSING_PATH_VARIABLE).build();
         ErrorResponse error = badRequestException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -106,13 +112,22 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return ResponseEntity.badRequest().body(error);
     }
 
-    // if invalid params in request body
     @ExceptionHandler(ValidationException.class)
     ResponseEntity<?> exceptionHandler(ValidationException exception, WebRequest request) {
         Locale locale = request.getLocale();
         BadRequestException badRequestException = BadRequestException.builder().type(INVALID_INPUT).build();
         ErrorResponse error = badRequestException.getErrorResponse(locale);
-        error.setErrorMessage(exception.getMessage());
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException exception, HttpHeaders headers,
+                                                                  HttpStatus status, WebRequest request) {
+        Locale locale = request.getLocale();
+        BadRequestException badRequestException = BadRequestException.builder().type(INVALID_INPUT).build();
+        ErrorResponse error = badRequestException.getErrorResponse(locale);
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -124,7 +139,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         String errorMessage = ErrorResponse.getMessageForLocale(INTERNAL_ERROR.getMessageKey(), locale);
         int errorCode = INTERNAL_ERROR.getErrorCode();
         ErrorResponse error = ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
-        LOGGER.error("Internal Error: " + exception + " | Message: " + exception.getMessage());
+        LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

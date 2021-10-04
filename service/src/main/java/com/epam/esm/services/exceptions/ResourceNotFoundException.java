@@ -3,14 +3,12 @@ package com.epam.esm.services.exceptions;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Locale;
 
-@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -21,18 +19,24 @@ public class ResourceNotFoundException extends Exception {
     private static final String NOT_FOUND_ERROR_KEY = "message.exception.notfound.";
     private ExceptionMessageType type;
     private ErrorResponse errorResponse;
-    private String resource;
+    private Long resourceId;
 
-    public ResourceNotFoundException(String resource) {
-        this.resource = resource;
+    public ResourceNotFoundException(Long resourceId) {
+        this.resourceId = resourceId;
     }
 
-    public ErrorResponse getErrorResponse(Locale locale){
+    public ResourceNotFoundException() {
+        this.resourceId = null;
+    }
+
+    public ErrorResponse getErrorResponse(Locale locale) {
         String messageKey = NOT_FOUND_ERROR_KEY + this.type.getMessageKey();
-        if(this.resource == null){
-            resource = ""; // if no specific resource
+        String errorMessage;
+        if (this.resourceId != null) {
+            errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale) + this.resourceId;
+        } else {
+            errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
         }
-        String errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale) + this.resource;
         int errorCode = this.type.getErrorCode();
         return ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
     }

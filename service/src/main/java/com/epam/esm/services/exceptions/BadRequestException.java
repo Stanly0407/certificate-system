@@ -26,7 +26,7 @@ public class BadRequestException extends Exception {
         this.type = type;
     }
 
-    public ErrorResponse getErrorResponse(Locale locale){
+    public ErrorResponse getErrorResponse(Locale locale) {
         String messageKey = BAD_REQUEST_ERROR_KEY + this.type.getMessageKey();
         String errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
         int errorCode = this.type.getErrorCode();
