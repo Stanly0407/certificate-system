@@ -4,12 +4,14 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
-import com.epam.esm.services.dto.GiftCertificateDto;
+import com.epam.esm.services.exceptions.BadRequestException;
+import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.service.GiftCertificateServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -17,10 +19,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
@@ -35,39 +41,28 @@ public class GiftCertificateServiceTest {
 
     private static final Long TEST_ID = 1L;
     private static final Long NEW_TAG_ID = 2L;
-    private static final Tag TAG_FIRST = new Tag(1L, "tagFirst");
-    private static final Tag TAG_SECOND = new Tag(2L, "tagSecond");
+    private static final Tag DEFAULT_TAG = new Tag(1L, "test", new ArrayList<>());
+    private static final Tag DEFAULT_TAG_SECOND = new Tag(2L, "rest", new ArrayList<>());
+    private static final Tag TAG_FIRST = new Tag(1L, "tagFirst", new ArrayList<>());
+    private static final Tag TAG_SECOND = Tag.builder().name("tagSecond").build();
+    private static final String NULL_STRING_PARAM = null;
+    private static final List<String> EMPTY_LIST = null;
     private static final String FIRST_TAG_NAME = "tagFirst";
     private static final String SECOND_TAG_NAME = "tagSecond";
-    private static final String EMPTY_SORT_QUERY_PARAMETERS = "";
-    private static final List<Tag> TAGS = Arrays.asList(TAG_FIRST, TAG_SECOND);
+    private static final int PAGE = 1;
+    private static final int SIZE = 5;
     private static final GiftCertificate GIFT_CERTIFICATE_FIRST = new GiftCertificate(1L, "name", "description",
             new BigDecimal("1.00"), 1, LocalDateTime.of(2021, 8, 24, 10, 10, 10),
-            LocalDateTime.of(2021, 8, 24, 10, 10, 10));
+            LocalDateTime.of(2021, 8, 24, 10, 10, 10),
+            new ArrayList<>(Arrays.asList(DEFAULT_TAG, DEFAULT_TAG_SECOND)), new ArrayList<>());
     private static final GiftCertificate GIFT_CERTIFICATE_SECOND = new GiftCertificate(2L, "second-third", "description",
             new BigDecimal("1.00"), 1, LocalDateTime.of(2021, 8, 25, 10, 10, 10),
-            LocalDateTime.of(2021, 8, 25, 10, 10, 10));
+            LocalDateTime.of(2021, 8, 25, 10, 10, 10),
+            new ArrayList<>(Arrays.asList(DEFAULT_TAG, DEFAULT_TAG_SECOND)), new ArrayList<>());
     private static final GiftCertificate GIFT_CERTIFICATE_THIRD = new GiftCertificate(3L, "third", "description",
             new BigDecimal("1.00"), 1, LocalDateTime.of(2021, 8, 26, 10, 10, 10),
-            LocalDateTime.of(2021, 8, 26, 10, 10, 10));
-    private static final GiftCertificateDto GIFT_CERTIFICATE_FIRST_DTO = new GiftCertificateDto.Builder()
-            .id(TEST_ID).name("name").description("description").duration(1).price(new BigDecimal("1.00"))
-            .createDate(LocalDateTime.of(2021, 8, 24, 10, 10, 10))
-            .lastUpdateDate(LocalDateTime.of(2021, 8, 24, 10, 10, 10))
-            .tags(TAGS)
-            .build();
-    private static final GiftCertificateDto GIFT_CERTIFICATE_SECOND_DTO = new GiftCertificateDto.Builder()
-            .id(2L).name("second-third").description("description").duration(1).price(new BigDecimal("1.00"))
-            .createDate(LocalDateTime.of(2021, 8, 25, 10, 10, 10))
-            .lastUpdateDate(LocalDateTime.of(2021, 8, 25, 10, 10, 10))
-            .tags(TAGS)
-            .build();
-    private static final GiftCertificateDto GIFT_CERTIFICATE_THIRD_DTO = new GiftCertificateDto.Builder()
-            .id(3L).name("third").description("description").duration(1).price(new BigDecimal("1.00"))
-            .createDate(LocalDateTime.of(2021, 8, 26, 10, 10, 10))
-            .lastUpdateDate(LocalDateTime.of(2021, 8, 26, 10, 10, 10))
-            .tags(TAGS)
-            .build();
+            LocalDateTime.of(2021, 8, 26, 10, 10, 10),
+            new ArrayList<>(Arrays.asList(DEFAULT_TAG)), new ArrayList<>());
 
     @Mock
     private GiftCertificateRepository giftCertificateRepository;
@@ -84,22 +79,6 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    public void findByIdTestShouldReturnGiftCertificateDto() {
-        Optional<GiftCertificate> giftCertificate = Optional.of(GIFT_CERTIFICATE_FIRST);
-        List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        when(giftCertificateRepository.findById(TEST_ID)).thenReturn(giftCertificate);
-        when(tagRepository.findGiftCertificateTags(TEST_ID)).thenReturn(tags);
-
-        Optional<GiftCertificateDto> actualOptional = giftCertificateService.findById(TEST_ID);
-        GiftCertificateDto actual = actualOptional.get();
-
-        Assertions.assertEquals(GIFT_CERTIFICATE_FIRST_DTO, actual);
-
-        Mockito.verify(giftCertificateRepository).findById(TEST_ID);
-        Mockito.verify(tagRepository).findGiftCertificateTags(TEST_ID);
-    }
-
-    @Test
     public void saveNewGiftCertificateTest() {
         List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
         Optional<Tag> tagFirstOptional = Optional.of(TAG_FIRST);
@@ -107,9 +86,9 @@ public class GiftCertificateServiceTest {
         when(giftCertificateRepository.save(GIFT_CERTIFICATE_FIRST)).thenReturn(TEST_ID);
         when(giftCertificateRepository.findById(TEST_ID)).thenReturn(Optional.of(GIFT_CERTIFICATE_FIRST));
         when(tagRepository.findTagByName(FIRST_TAG_NAME)).thenReturn(tagFirstOptional);
-        when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(tagSecondOptional).thenReturn(Optional.empty());
-        when(tagRepository.save(TAG_SECOND.getName())).thenReturn(NEW_TAG_ID);
+        when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(Optional.empty()).thenReturn(tagSecondOptional);
         when(tagRepository.findById(NEW_TAG_ID)).thenReturn(tagSecondOptional);
+        when(tagRepository.save(TAG_SECOND)).thenReturn(NEW_TAG_ID);
         doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_FIRST);
         doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_SECOND);
 
@@ -119,8 +98,8 @@ public class GiftCertificateServiceTest {
         Mockito.verify(giftCertificateRepository).findById(TEST_ID);
         Mockito.verify(giftCertificateRepository, times(2))
                 .addTagToGiftCertificate(any(GiftCertificate.class), any(Tag.class));
-        Mockito.verify(tagRepository, times(5)).findTagByName(anyString());
-        Mockito.verify(tagRepository).save(anyString());
+        Mockito.verify(tagRepository, times(3)).findTagByName(anyString());
+        Mockito.verify(tagRepository).save(any(Tag.class));
     }
 
     @Test
@@ -128,11 +107,14 @@ public class GiftCertificateServiceTest {
         List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
         Optional<Tag> tagFirstOptional = Optional.of(TAG_FIRST);
         Optional<Tag> tagSecondOptional = Optional.of(TAG_SECOND);
+
         doNothing().when(giftCertificateRepository).update(GIFT_CERTIFICATE_FIRST);
-        doNothing().when(tagRepository).deleteGiftCertificateTags(1L);
+        doNothing().when(tagRepository).deleteGiftCertificateTags(TEST_ID);
         when(tagRepository.findTagByName(FIRST_TAG_NAME)).thenReturn(tagFirstOptional);
-        when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(Optional.empty()).thenReturn(tagSecondOptional);
-        when(tagRepository.save(TAG_SECOND.getName())).thenReturn(NEW_TAG_ID);
+        when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(Optional.empty());
+
+        when(tagRepository.findById(NEW_TAG_ID)).thenReturn(tagSecondOptional);
+        when(tagRepository.save(TAG_SECOND)).thenReturn(NEW_TAG_ID);
         doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_FIRST);
         doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_SECOND);
 
@@ -140,114 +122,244 @@ public class GiftCertificateServiceTest {
 
         verify(giftCertificateRepository).update(any(GiftCertificate.class));
         verify(tagRepository).deleteGiftCertificateTags(anyLong());
-        verify(tagRepository, times(1)).save(anyString());
-        verify(tagRepository, times(4)).findTagByName(anyString());
+        verify(tagRepository).save(any(Tag.class));
+        verify(tagRepository).findById(anyLong());
+        verify(tagRepository, times(3)).findTagByName(anyString());
         verify(giftCertificateRepository, times(2))
                 .addTagToGiftCertificate(any(GiftCertificate.class), any(Tag.class));
     }
 
     @Test
-    public void findGiftCertificatesByTagTestShouldReturnGiftCertificateDtoList() {
+    public void findGiftCertificatesByTagTestShouldReturnGiftCertificateList() throws BadRequestException {
         String givenTagName = "test";
-        List<GiftCertificate> expectedGiftCertificates = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND,
-                GIFT_CERTIFICATE_THIRD);
-        List<Tag> certificateTags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        List<GiftCertificateDto> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST_DTO, GIFT_CERTIFICATE_SECOND_DTO,
-                GIFT_CERTIFICATE_THIRD_DTO);
-        when(giftCertificateRepository.findGiftCertificatesByTag(EMPTY_SORT_QUERY_PARAMETERS, givenTagName))
-                .thenReturn(expectedGiftCertificates);
-        when(tagRepository.findGiftCertificateTags(TEST_ID)).thenReturn(certificateTags);
-        when(tagRepository.findGiftCertificateTags(2L)).thenReturn(certificateTags);
-        when(tagRepository.findGiftCertificateTags(3L)).thenReturn(certificateTags);
+        List<String> tagNames = Arrays.asList(givenTagName);
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_THIRD);
+        when(giftCertificateRepository.findGiftCertificatesByTag(EMPTY_LIST, NULL_STRING_PARAM,
+                givenTagName, PAGE, SIZE)).thenReturn(expected);
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(tagNames, EMPTY_LIST,
+                NULL_STRING_PARAM, null, PAGE, SIZE);
 
-        List<GiftCertificateDto> actual = giftCertificateService.findGiftCertificates(givenTagName, null,
-                null, null);
+        assertEquals(expected, actual);
 
-        Assertions.assertEquals(expected, actual);
-
-        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(anyString(), anyString());
-        Mockito.verify(tagRepository, times(3)).findGiftCertificateTags(anyLong());
+        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(any(), any(), anyString(), Mockito.anyInt(), Mockito.anyInt());
     }
 
     @Test
-    public void getGiftCertificatesByConditionSortedByDateTest() {
-        String sortCondition = "date";
-        String searchCondition = "second";
-        List<GiftCertificate> expectedGiftCertificates = Arrays.asList(GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_THIRD);
-        List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        List<GiftCertificateDto> expected = Arrays.asList(GIFT_CERTIFICATE_SECOND_DTO, GIFT_CERTIFICATE_THIRD_DTO);
-        when(giftCertificateRepository.findByMatch(anyString(), anyString())).thenReturn(expectedGiftCertificates);
-        when(tagRepository.findGiftCertificateTags(2L)).thenReturn(tags);
-        when(tagRepository.findGiftCertificateTags(3L)).thenReturn(tags);
-
-        List<GiftCertificateDto> actual = giftCertificateService.findGiftCertificates(null,
-                Arrays.asList(sortCondition), null, searchCondition);
-
-        Assertions.assertEquals(expected, actual);
-
-        Mockito.verify(giftCertificateRepository).findByMatch(anyString(), anyString());
-        Mockito.verify(tagRepository, times(2)).findGiftCertificateTags(anyLong());
-    }
-
-    @Test
-    public void getGiftCertificatesByConditionSortedByNameDescTest() {
-        String sortCondition = "name";
-        String order = "desc";
-        String searchCondition = "second";
-        List<GiftCertificate> expectedGiftCertificates = Arrays.asList(GIFT_CERTIFICATE_THIRD, GIFT_CERTIFICATE_SECOND);
-        List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        List<GiftCertificateDto> expected = Arrays.asList(GIFT_CERTIFICATE_THIRD_DTO, GIFT_CERTIFICATE_SECOND_DTO);
-        when(giftCertificateRepository.findByMatch(anyString(), anyString())).thenReturn(expectedGiftCertificates);
-        when(tagRepository.findGiftCertificateTags(2L)).thenReturn(tags);
-        when(tagRepository.findGiftCertificateTags(3L)).thenReturn(tags);
-
-        List<GiftCertificateDto> actual = giftCertificateService.findGiftCertificates(null,
-                Arrays.asList(sortCondition), order, searchCondition);
-
-        Assertions.assertEquals(expected, actual);
-
-        Mockito.verify(giftCertificateRepository).findByMatch(anyString(), anyString());
-        Mockito.verify(tagRepository, times(2)).findGiftCertificateTags(anyLong());
-    }
-
-    @Test
-    public void getGiftCertificatesByTagSortByDateDescTest() {
+    public void findGiftCertificatesBySeveralTagsTestShouldReturnGiftCertificateList() throws BadRequestException {
         String givenTagName = "test";
-        String order = "desc";
-        String sortCondition = "date";
-        List<GiftCertificate> expectedGiftCertificates = Arrays.asList(GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_FIRST);
-        List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        List<GiftCertificateDto> expected = Arrays.asList(GIFT_CERTIFICATE_SECOND_DTO, GIFT_CERTIFICATE_FIRST_DTO);
-        when(giftCertificateRepository.findGiftCertificatesByTag(anyString(), anyString())).thenReturn(expectedGiftCertificates);
-        when(tagRepository.findGiftCertificateTags(TEST_ID)).thenReturn(tags);
-        when(tagRepository.findGiftCertificateTags(2L)).thenReturn(tags);
+        String givenTagNameSecond = "rest";
+        List<String> tagNames = Arrays.asList(givenTagName, givenTagNameSecond);
 
-        List<GiftCertificateDto> actual = giftCertificateService.findGiftCertificates(givenTagName,
-                Arrays.asList(sortCondition), order, null);
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND);
+        when(giftCertificateRepository.findGiftCertificateBySeveralTags(EMPTY_LIST, NULL_STRING_PARAM,
+                tagNames, PAGE, SIZE)).thenReturn(expected);
 
-        Assertions.assertEquals(expected, actual);
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(tagNames, EMPTY_LIST,
+                NULL_STRING_PARAM, null, PAGE, SIZE);
 
-        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(anyString(), anyString());
-        Mockito.verify(tagRepository, times(2)).findGiftCertificateTags(anyLong());
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findGiftCertificateBySeveralTags(any(), any(), Mockito.anyList(),
+                Mockito.anyInt(), Mockito.anyInt());
     }
 
     @Test
-    public void findGiftCertificatesByTagTestWithoutSorting() {
-        String givenTagName = "test";
-        List<GiftCertificate> expectedGiftCertificates = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND);
-        List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
-        List<GiftCertificateDto> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST_DTO, GIFT_CERTIFICATE_SECOND_DTO);
-        when(giftCertificateRepository.findGiftCertificatesByTag(anyString(), anyString())).thenReturn(expectedGiftCertificates);
-        when(tagRepository.findGiftCertificateTags(TEST_ID)).thenReturn(tags);
-        when(tagRepository.findGiftCertificateTags(2L)).thenReturn(tags);
+    public void findByMatchTestShouldReturnGiftCertificateList() throws BadRequestException {
+        String searchCondition = "third";
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_THIRD);
+        when(giftCertificateRepository.findByMatch(EMPTY_LIST, NULL_STRING_PARAM, searchCondition, PAGE, SIZE))
+                .thenReturn(expected);
 
-        List<GiftCertificateDto> actual = giftCertificateService.findGiftCertificates(givenTagName,
-                null, null, null);
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(EMPTY_LIST, EMPTY_LIST,
+                NULL_STRING_PARAM, searchCondition, PAGE, SIZE);
 
-        Assertions.assertEquals(expected, actual);
+        assertEquals(expected, actual);
 
-        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(anyString(), anyString());
-        Mockito.verify(tagRepository, times(2)).findGiftCertificateTags(anyLong());
+        Mockito.verify(giftCertificateRepository).findByMatch(any(), any(), anyString(), Mockito.anyInt(), Mockito.anyInt());
     }
+
+    @Test
+    public void findGiftCertificatesBySeveralTagsWithSortByNameOrderDesc() throws BadRequestException {
+        String givenTagName = "test";
+        String givenTagNameSecond = "rest";
+        String sortOrder = "desc";
+        List<String> sortParams = Arrays.asList("name");
+        List<String> tagNames = Arrays.asList(givenTagName, givenTagNameSecond);
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_FIRST);
+        when(giftCertificateRepository.findGiftCertificateBySeveralTags(sortParams, sortOrder, tagNames, PAGE, SIZE))
+                .thenReturn(expected);
+
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(tagNames, sortParams,
+                sortOrder, null, PAGE, SIZE);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findGiftCertificateBySeveralTags(Mockito.anyList(), any(),
+                any(), Mockito.anyInt(), Mockito.anyInt());
+    }
+
+    @Test
+    public void findGiftCertificatesByTagWithSortByDateOrderAsc() throws BadRequestException {
+        String givenTagName = "test";
+        List<String> tagNames = Arrays.asList(givenTagName);
+        String sortOrder = "asc";
+        List<String> sortParams = Arrays.asList("date");
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_THIRD, GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_FIRST);
+        when(giftCertificateRepository.findGiftCertificatesByTag(sortParams, sortOrder,
+                givenTagName, PAGE, SIZE)).thenReturn(expected);
+
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(tagNames, sortParams,
+                sortOrder, null, PAGE, SIZE);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(Mockito.anyList(), anyString(),
+                anyString(), Mockito.anyInt(), Mockito.anyInt());
+    }
+
+    @Test
+    public void findGiftCertificatesByTagWithSortByDateAndByNameOrderAsc() throws BadRequestException {
+        String givenTagName = "test";
+        List<String> tagNames = Arrays.asList(givenTagName);
+        String sortOrder = "asc";
+        List<String> sortParams = Arrays.asList("date", "name");
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_THIRD, GIFT_CERTIFICATE_SECOND);
+        when(giftCertificateRepository.findGiftCertificatesByTag(sortParams, sortOrder, givenTagName, PAGE, SIZE))
+                .thenReturn(expected);
+
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(tagNames, sortParams,
+                sortOrder, null, PAGE, SIZE);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findGiftCertificatesByTag(Mockito.anyList(), anyString(),
+                anyString(), Mockito.anyInt(), Mockito.anyInt());
+    }
+
+    @Test
+    public void findAllGiftCertificatesTestWithSortByName() throws BadRequestException {
+        List<String> sortParams = Arrays.asList("name");
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_THIRD);
+        when(giftCertificateRepository.findAllGiftCertificates(sortParams, NULL_STRING_PARAM, PAGE, SIZE))
+                .thenReturn(expected);
+
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(EMPTY_LIST, sortParams, NULL_STRING_PARAM,
+                NULL_STRING_PARAM, PAGE, SIZE);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findAllGiftCertificates(Mockito.anyList(), any(), Mockito.anyInt(), Mockito.anyInt());
+    }
+
+    @Test
+    public void findAllGiftCertificatesTestShouldReturnGiftCertificateList() throws BadRequestException {
+        List<GiftCertificate> expected = Arrays.asList(GIFT_CERTIFICATE_FIRST, GIFT_CERTIFICATE_SECOND, GIFT_CERTIFICATE_THIRD);
+        when(giftCertificateRepository.findAllGiftCertificates(EMPTY_LIST, NULL_STRING_PARAM, PAGE, SIZE))
+                .thenReturn(expected);
+
+        List<GiftCertificate> actual = giftCertificateService.findGiftCertificates(EMPTY_LIST, EMPTY_LIST,
+                NULL_STRING_PARAM, NULL_STRING_PARAM, PAGE, SIZE);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).findAllGiftCertificates(any(), any(), Mockito.anyInt(), Mockito.anyInt());
+    }
+
+    @Test
+    public void findGiftCertificatesByTagAndByNameShouldThrowException() {
+        String givenTagName = "test";
+        List<String> tagNames = Arrays.asList(givenTagName);
+        String sortOrder = "asc";
+        String searchCondition = "third";
+        List<String> sortParams = Arrays.asList("date", "name");
+
+        Executable executable = () -> giftCertificateService.findGiftCertificates(tagNames, sortParams,
+                sortOrder, searchCondition, PAGE, SIZE);
+
+        Assertions.assertThrows(BadRequestException.class, executable);
+    }
+
+    @Test
+    public void findGiftCertificatesBySearchConditionWithSortNullAndOrderNotNullShouldThrowException() {
+        String sortOrder = "asc";
+        String searchCondition = "third";
+
+        Executable executable = () -> giftCertificateService.findGiftCertificates(EMPTY_LIST, EMPTY_LIST,
+                sortOrder, searchCondition, PAGE, SIZE);
+
+        Assertions.assertThrows(BadRequestException.class, executable);
+    }
+
+    @Test
+    public void getPaginationInfoTestShouldReturnPageQuantity() throws ResourceNotFoundException {
+        Long countResult = 3L;
+        Long expected = 2L;
+        int pageNumber = 1;
+        int pageSize = 2;
+
+        when(giftCertificateRepository.countGiftCertificateSelect("ALL", EMPTY_LIST, NULL_STRING_PARAM, NULL_STRING_PARAM))
+                .thenReturn(countResult);
+
+        Long actual = giftCertificateService.getPaginationInfo(pageNumber, pageSize, EMPTY_LIST, NULL_STRING_PARAM);
+
+        assertEquals(expected, actual);
+
+        Mockito.verify(giftCertificateRepository).countGiftCertificateSelect(anyString(), any(), any(), any());
+    }
+
+    @Test
+    public void getPaginationInfoTestShouldThrowExceptionIfRequestPageNonexistent() {
+        Long countResult = 10L;
+        int pageNumber = 3;
+        String searchType = "ALL";
+
+        when(giftCertificateRepository.countGiftCertificateSelect(searchType, EMPTY_LIST, NULL_STRING_PARAM, NULL_STRING_PARAM))
+                .thenReturn(countResult);
+
+        Executable executable = () -> giftCertificateService.getPaginationInfo(pageNumber, SIZE, EMPTY_LIST, NULL_STRING_PARAM);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, executable);
+    }
+
+    @Test
+    public void partialGiftCertificateUpdateTest() throws ResourceNotFoundException {
+        String newGiftCertificateName = "updated";
+        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.of(GIFT_CERTIFICATE_THIRD));
+        doNothing().when(giftCertificateRepository)
+                .partialGiftCertificateUpdate("name", newGiftCertificateName, 3L);
+
+        boolean actual = giftCertificateService
+                .partialGiftCertificateUpdate(newGiftCertificateName, NULL_STRING_PARAM, null, null, 3L);
+
+        assertTrue(actual);
+
+        Mockito.verify(giftCertificateRepository).findById(anyLong());
+        Mockito.verify(giftCertificateRepository).partialGiftCertificateUpdate(anyString(), anyString(), anyLong());
+    }
+
+    @Test
+    public void partialGiftCertificateUpdateTestShouldReturnFalseIfNotOneParam() throws ResourceNotFoundException {
+        String newParam = "updated";
+        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.of(GIFT_CERTIFICATE_THIRD));
+
+        boolean actual = giftCertificateService
+                .partialGiftCertificateUpdate(newParam, newParam, null, null, 3L);
+
+        assertFalse(actual);
+
+        Mockito.verify(giftCertificateRepository).findById(anyLong());
+    }
+
+    @Test
+    public void partialGiftCertificateUpdateTestShouldThrowException() {
+        String newGiftCertificateName = "updated";
+        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.empty());
+
+        Executable executable = () -> giftCertificateService
+                .partialGiftCertificateUpdate(newGiftCertificateName, NULL_STRING_PARAM, null, null, 3L);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, executable);
+    }
+
 
 }
