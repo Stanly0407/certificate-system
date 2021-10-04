@@ -4,7 +4,7 @@ import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.service.TagService;
-import org.springframework.http.HttpStatus;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,75 +29,71 @@ import java.util.Optional;
 @RestController
 @RequestMapping("tags")
 @Validated
-public class TagController {
+public class TagController implements BaseController {
 
     private final TagService tagService;
+    private final LinkBuilder linkBuilder;
 
-    public TagController(TagService tagService) {
+    public TagController(TagService tagService, LinkBuilder linkBuilder) {
         this.tagService = tagService;
+        this.linkBuilder = linkBuilder;
     }
 
     /**
      * Creates a new tag;
      *
      * @param tag is a new tag to be created;
+     * @return ResponseEntity representing the whole HTTP response: status code 201 and headers;
+     * @throws BadRequestException if invalid parameters input;
      */
     @PostMapping
     public ResponseEntity<?> createNewTag(@RequestBody @Valid Tag tag) throws BadRequestException {
         String tagName = tag.getName();
-        Optional<Tag> tagOptional = tagService.findTagByName(tagName);
-        if (tagOptional.isPresent()) {
-            throw new BadRequestException("exists", 40005);
-        } else if (tag.getId() != null) {
-            throw new BadRequestException("invalid.input", 40004);
-        } else {
-            tagService.saveNewTag(Tag.builder().name(tagName).build());
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        }
+        Long newTagId = tagService.saveNewTag(tagName);
+        Link newTagLocation = linkBuilder.getSelfLink(newTagId, TagController.class);
+        return ResponseEntity.created(newTagLocation.toUri()).build();
     }
 
     /**
      * Finds the tag by id;
      *
      * @param id is a unique field of the tag;
-     * @return the tag object
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers and tag in the body;
      * @throws ResourceNotFoundException if the requested tag is not found;
      */
     @GetMapping("{id}")
-    public Tag getTagById(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
-        Optional<Tag> tag = tagService.findTagById(id);
-        if (tag.isPresent()) {
-            return tag.get();
-        } else {
-            throw new ResourceNotFoundException(" (tag id = " + id + ")");
-        }
+    public ResponseEntity<?> getTagById(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
+        Tag tag = tagService.findTagById(id);
+        return ResponseEntity.ok(tag);
     }
 
     /**
      * Deletes the tag by its id;
      *
      * @param id is a unique field of the tag;
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers;
      * @throws ResourceNotFoundException if the resource being deleted does not found;
      */
     @DeleteMapping("{id}")
-    public void deleteTag(@PathVariable Long id) throws ResourceNotFoundException {
-        Optional<Tag> tag = tagService.findTagById(id);
-        if (tag.isPresent()) {
-            tagService.deleteTag(tag.get());
-        } else {
-            throw new ResourceNotFoundException(" (tag id " + id + ")");
-        }
+    public ResponseEntity<?> deleteTag(@PathVariable Long id) throws ResourceNotFoundException {
+        tagService.deleteTag(id);
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Finds the most widely used tag of a user with the highest cost of all orders;
+     *
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers and tag in the body;
+     * @throws ResourceNotFoundException if the resource being deleted does not found;
+     */
     @GetMapping("/widely-used")
-    public Tag getMostWidelyUsedTagOfUserWithHighestCostOrders() throws ResourceNotFoundException {
+    public ResponseEntity<?> getMostWidelyUsedTagOfUserWithHighestCostOrders() throws ResourceNotFoundException {
         Optional<Tag> tag = tagService.getMostWidelyUsedTagOfUserWithHighestCostOrders();
         if (tag.isPresent()) {
-            return tag.get();
+            return ResponseEntity.ok(tag.get());
         } else {
-            throw new ResourceNotFoundException(" - the most widely used tag of a user with the highest cost of all orders.");
+            throw new ResourceNotFoundException();
         }
     }
-
 
 }

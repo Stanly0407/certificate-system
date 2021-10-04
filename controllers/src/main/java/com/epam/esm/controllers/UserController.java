@@ -14,10 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -33,15 +32,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("users")
 @Validated
-public class UserController {
-
-    private static final String PREVIOUS_PAGE = "previousPage";
-    private static final String NEXT_PAGE = "nextPage";
+public class UserController implements BaseController {
 
     private final UserService userService;
+    private final LinkBuilder linkBuilder;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, LinkBuilder linkBuilder) {
         this.userService = userService;
+        this.linkBuilder = linkBuilder;
     }
 
     /**
@@ -52,14 +50,14 @@ public class UserController {
      * @throws ResourceNotFoundException if the requested user is not found;
      */
     @GetMapping("{id}")
-    public User getUser(@PathVariable Long id) throws ResourceNotFoundException {
+    public ResponseEntity<User> getUser(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
         Optional<User> userOptional = userService.getById(id);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            user.add(linkTo(methodOn(UserController.class).getUser(id)).withSelfRel());
-            return user;
+            linkBuilder.addSelfLink(user, id, UserController.class);
+            return ResponseEntity.ok(user);
         } else {
-            throw new ResourceNotFoundException(" (user id = " + id + ")");
+            throw new ResourceNotFoundException(id);
         }
     }
 
@@ -69,46 +67,17 @@ public class UserController {
      * @return the collection <code>List</code> of all users;
      */
     @GetMapping
-    public ResponseEntity<?> getAllUsers(
-            @Valid @RequestParam("page") @Min(value = 1, message = "incorrect page number value") int pageNumber,
-            @Valid @RequestParam("size") @Min(value = 1, message = "incorrect page size value") int pageSize) {
-
+    public ResponseEntity<CollectionModel<User>> getAllUsers(
+            @Valid @RequestParam(defaultValue = "1", value = "page") @Min(1) int pageNumber,
+            @Valid @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) int pageSize) throws ResourceNotFoundException {
         List<User> users = userService.getAllUsers(pageNumber, pageSize);
-
-        if (!users.isEmpty()) {
-            for (User user : users) {
-                Long userId = user.getId();
-                Link selfLink = linkTo(UserController.class).slash(userId).withSelfRel();
-                user.add(selfLink);
-            }
-            Map<String, Integer> pages = userService.getUsersPaginationInfo(pageNumber, pageSize);
-            List<Link> links = createPaginationLinks(pages, pageSize);
-
-            Link link = linkTo(methodOn(UserController.class).getAllUsers(pageNumber, pageSize)).withSelfRel();
-            links.add(link);
-
-            CollectionModel<User> result = CollectionModel.of(users, links);
-
-            return ResponseEntity.ok().body(result);
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
+        linkBuilder.addSelfLinks(users, UserController.class);
+        long pageQuantity = userService.getUsersPaginationInfo(pageNumber, pageSize);
+        String uriString = linkTo(methodOn(UserController.class).getAllUsers(pageNumber, pageSize))
+                .toUriComponentsBuilder().buildAndExpand().toString();
+        List<Link> links = linkBuilder.createPaginationLinks(pageQuantity, pageNumber, uriString);
+        CollectionModel<User> result = CollectionModel.of(users, links);
+        return ResponseEntity.ok().body(result);
     }
-
-    private List<Link> createPaginationLinks(Map<String, Integer> pages, int pageSize) {
-        List<Link> links = new ArrayList<>();
-        if (pages.containsKey(PREVIOUS_PAGE)) {
-            int previousPage = pages.get(PREVIOUS_PAGE);
-            Link previousPageLink = linkTo(methodOn(UserController.class).getAllUsers(previousPage, pageSize)).withRel(PREVIOUS_PAGE);
-            links.add(previousPageLink);
-        }
-        if (pages.containsKey(NEXT_PAGE)) {
-            int nextPage = pages.get(NEXT_PAGE);
-            Link nextPageLink = linkTo(methodOn(UserController.class).getAllUsers(nextPage, pageSize)).withRel(NEXT_PAGE);
-            links.add(nextPageLink);
-        }
-        return links;
-    }
-
 
 }
