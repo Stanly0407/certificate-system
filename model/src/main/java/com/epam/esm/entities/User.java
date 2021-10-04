@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -24,8 +23,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-@Builder
-//@SuperBuilder
 public class User extends Entity {
 
     @Column
@@ -45,6 +42,13 @@ public class User extends Entity {
     @JsonBackReference
     private List<Order> orders;
 
-
-
+    @Builder
+    public User(Long id, String login, String password, String name, String lastname, List<Order> orders) {
+        super(id);
+        this.login = login;
+        this.password = password;
+        this.name = name;
+        this.lastname = lastname;
+        this.orders = orders;
+    }
 }

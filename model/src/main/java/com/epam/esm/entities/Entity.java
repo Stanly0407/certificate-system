@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.Column;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -20,12 +21,12 @@ import java.io.Serializable;
  * @author Sviatlana Shelestava
  * @since 1.0
  */
+@EntityListeners(AuditListener.class)
 @MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-//@SuperBuilder
 public abstract class Entity extends RepresentationModel<Entity> implements Cloneable, Serializable {
 
     /**
@@ -36,6 +37,7 @@ public abstract class Entity extends RepresentationModel<Entity> implements Clon
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     private Long id;
+
 
 }
 

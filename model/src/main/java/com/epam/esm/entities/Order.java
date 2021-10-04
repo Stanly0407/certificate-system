@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-@Builder
 public class Order extends Entity {
 
     @Column(name = "order_price")
@@ -61,4 +60,16 @@ public class Order extends Entity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Builder
+    public Order(Long id, BigDecimal orderPrice, LocalDateTime orderDate, boolean isPaid, LocalDateTime purchaseDate,
+                 GiftCertificate giftCertificate, User user) {
+        super(id);
+        this.orderPrice = orderPrice;
+        this.orderDate = orderDate;
+        this.isPaid = isPaid;
+        this.purchaseDate = purchaseDate;
+        this.giftCertificate = giftCertificate;
+        this.user = user;
+    }
 }

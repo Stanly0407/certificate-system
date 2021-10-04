@@ -7,13 +7,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.List;
 
@@ -27,8 +26,8 @@ import java.util.List;
 public class Tag extends Entity {
 
     @Column(unique = true, nullable = false)
-    @NotEmpty(message = "Name may not be empty")
-    @Size(min = 2, max = 20, message = "The tag name size must be between {min} and {max} characters long")
+    @NotBlank
+    @Size(min = 2, max = 20)
     private String name;
 
     @ManyToMany(mappedBy = "tags",
@@ -38,4 +37,10 @@ public class Tag extends Entity {
     @JsonBackReference
     private List<GiftCertificate> giftCertificates;
 
+    @Builder
+    public Tag(long id, String name, List<GiftCertificate> giftCertificates) {
+        super(id);
+        this.name = name;
+        this.giftCertificates = giftCertificates;
+    }
 }
