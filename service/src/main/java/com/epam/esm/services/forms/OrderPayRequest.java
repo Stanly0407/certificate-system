@@ -4,22 +4,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Builder
-public class OrderCreateRequest {
+public class OrderPayRequest {
 
-    @NotNull
+    @NonNull
     @Min(1)
     private Long userId;
 
-    @NotNull
+    @NonNull
     @Min(1)
-    private Long giftCertificateId;
+    private Long orderId;
 
 }

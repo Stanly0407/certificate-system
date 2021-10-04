@@ -2,12 +2,17 @@ package com.epam.esm.services.service;
 
 import com.epam.esm.entities.Tag;
 import com.epam.esm.repository.TagRepository;
+import com.epam.esm.services.exceptions.BadRequestException;
+import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static com.epam.esm.services.exceptions.ExceptionMessageType.ALREADY_EXISTS;
+
 @Service
+@Transactional
 public class TagServiceImpl implements TagService {
 
     private final TagRepository tagRepository;
@@ -16,27 +21,36 @@ public class TagServiceImpl implements TagService {
         this.tagRepository = tagRepository;
     }
 
-    @Transactional
-    public void saveNewTag(Tag tag) {
-        tagRepository.save(tag);
+
+    public Long saveNewTag(String tagName) throws BadRequestException {
+        Optional<Tag> tagOptional = tagRepository.findTagByName(tagName);
+        if (tagOptional.isPresent()) {
+            throw new BadRequestException(ALREADY_EXISTS);
+        } else {
+            Tag newTag = Tag.builder().name(tagName).build();
+            return tagRepository.save(newTag);
+        }
     }
 
-    @Transactional
-    public Optional<Tag> findTagById(Long id) {
-        return tagRepository.findById(id);
+    public Tag findTagById(Long id) throws ResourceNotFoundException {
+        Optional<Tag> tag = tagRepository.findById(id);
+        if (!tag.isPresent()) {
+            throw new ResourceNotFoundException(id);
+        } else {
+            return tag.get();
+        }
     }
 
-    @Transactional
-    public Optional<Tag> findTagByName(String tagName) {
-        return tagRepository.findTagByName(tagName);
+    public void deleteTag(Long id) throws ResourceNotFoundException {
+        Optional<Tag> tagOptional = tagRepository.findById(id);
+        if (!tagOptional.isPresent()) {
+            throw new ResourceNotFoundException(id);
+        } else {
+            Tag tag = tagOptional.get();
+            tagRepository.delete(tag);
+        }
     }
 
-    @Transactional
-    public void deleteTag(Tag tag) {
-        tagRepository.delete(tag);
-    }
-
-    @Override
     public Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
         return tagRepository.getMostWidelyUsedTagOfUserWithHighestCostOrders();
     }

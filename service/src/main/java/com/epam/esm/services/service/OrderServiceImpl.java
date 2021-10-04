@@ -7,21 +7,22 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
 import com.epam.esm.services.dto.OrderDto;
+import com.epam.esm.services.exceptions.BadRequestException;
+import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.epam.esm.services.exceptions.ExceptionMessageType.INCORRECT_PARAMETERS;
 
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
-
-    private static final String PREVIOUS_PAGE = "previousPage";
-    private static final String NEXT_PAGE = "nextPage";
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -35,106 +36,86 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public boolean createOrder(Long giftCertificateId, Long userId) {
+    public Long createOrder(Long giftCertificateId, Long userId) throws ResourceNotFoundException {
         Optional<User> userOptional = userRepository.getById(userId);
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateRepository.findById(giftCertificateId);
-
-        if (userOptional.isPresent() && giftCertificateOptional.isPresent()) {
+        if (!userOptional.isPresent()) {
+            throw new ResourceNotFoundException(userId);
+        } else if (!giftCertificateOptional.isPresent()) {
+            throw new ResourceNotFoundException(giftCertificateId);
+        } else {
             GiftCertificate giftCertificate = giftCertificateOptional.get();
             User user = userOptional.get();
             BigDecimal orderPrice = giftCertificate.getPrice();
-            orderRepository.saveOrder(Order.builder()
-                    .orderPrice(orderPrice)
-                    .giftCertificate(giftCertificate)
-                    .user(user)
-                    .build());
-            return true;
-        } else {
-            return false;
+            Order newOrder = Order.builder().orderPrice(orderPrice).giftCertificate(giftCertificate).user(user).build();
+            return orderRepository.saveOrder(newOrder);
         }
     }
 
     @Override
-    public boolean payOrder(Long orderId, Long userId) {
+    public void payOrder(Long orderId, Long userId) throws ResourceNotFoundException, BadRequestException {
         Optional<User> userOptional = userRepository.getById(userId);
         Optional<Order> orderOptional = orderRepository.findById(orderId);
-        Long userIdOfOrder = null;
-        boolean isAlreadyPaid = true;
-        if (orderOptional.isPresent()) {
+        Long userIdOfOrder;
+        if (!orderOptional.isPresent()) {
+            throw new ResourceNotFoundException(orderId);
+        } else if (!userOptional.isPresent()) {
+            throw new ResourceNotFoundException(userId);
+        } else {
             Order order = orderOptional.get();
             userIdOfOrder = order.getUser().getId();
-            isAlreadyPaid = order.isPaid();
-        }
-        if (userOptional.isPresent() && userId.equals(userIdOfOrder) && !isAlreadyPaid) {
-            orderRepository.updateOrderStatus(orderId);
-            return true;
-        } else {
-            return false;
+            if (!userId.equals(userIdOfOrder) || order.isPaid()) {
+                throw new BadRequestException(INCORRECT_PARAMETERS);
+            } else {
+                orderRepository.updateOrderStatus(orderId);
+            }
         }
     }
 
     @Override
-    public List<Order> getPaidUserOrders(Long userId, int pageNumber, int pageSize) {
-        // check if user does not exist
-       return orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
-    }
-
-    public Map<String, Object> getPaginationInfo(Long userId, int pageNumber, int pageSize) {
-
-        long pageQuantity = getPaidUserOrdersQuantity(pageSize, userId);
-
-        //static common interface method - long pageQuantity int pageNumber, int pageSize
-        Map<String, Object> pages = new HashMap<>();
-        Integer previousPage = null;
-        Integer nextPage = null;
-        if ((pageNumber - 1) > 0) {
-            previousPage = pageNumber - 1;
-        }
-        if ((pageNumber + 1) <= pageQuantity) {
-            nextPage = pageNumber + 1;
-        }
-
-        if (previousPage != null) {
-            pages.put(PREVIOUS_PAGE, previousPage);
-        }
-        if (nextPage != null) {
-            pages.put(NEXT_PAGE, nextPage);
-        }
-        return pages;
-
-    }
-
-    public long getPaidUserOrdersQuantity(int pageSize, Long userId) {
-        long countResult = orderRepository.getPaidUserOrdersQuantity(userId).size();
-        if ((countResult % pageSize) != 0){
-            return (countResult / pageSize) + 1;
+    public List<OrderDto> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
+        Optional<User> user = userRepository.getById(userId);
+        if (!user.isPresent()) {
+            throw new ResourceNotFoundException(userId);
         } else {
-            return (countResult / pageSize);
+            List<Order> orders = orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
+            return orders.stream().map(e -> OrderDto.builder()
+                    .id(e.getId()).orderPrice(e.getOrderPrice()).purchaseDate(e.getPurchaseDate())
+                    .build()).collect(Collectors.toList());
         }
+    }
+
+    public long getUsersPaginationInfo(Integer pageSize, Integer pageNumber, Long userId) throws ResourceNotFoundException {
+        long countResult = orderRepository.getPaidUserOrdersQuantity(userId);
+        long pageQuantity;
+
+        if ((countResult % pageSize) != 0) {
+            pageQuantity = (countResult / pageSize) + 1;
+        } else {
+            pageQuantity = (countResult / pageSize);
+        }
+
+        if (pageQuantity < pageNumber) {
+            throw new ResourceNotFoundException();
+        }
+        return pageQuantity;
     }
 
     @Override
-    public Optional<OrderDto> getPaidOrderById(Long orderId) {
+    public Optional<OrderDto> getPaidOrderById(Long orderId) throws ResourceNotFoundException {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
-        Order order = null;
-        boolean isPaidOrder = false;
-
-        if (orderOptional.isPresent()) {
-            order = orderOptional.get();
-            isPaidOrder = order.isPaid();
-        }
-
-        if (isPaidOrder) {
-            OrderDto orderDto = OrderDto.builder()
-                    .id(orderId)
-                    .orderPrice(order.getOrderPrice())
-                    .purchaseDate(order.getPurchaseDate())
-                    .build();
-            return Optional.of(orderDto);
+        if (!orderOptional.isPresent()) {
+            throw new ResourceNotFoundException(orderId);
         } else {
-            return Optional.empty();
+            Order order = orderOptional.get();
+            if (order.isPaid()) {
+                BigDecimal orderPrice = order.getOrderPrice();
+                LocalDateTime purchaseDate = order.getPurchaseDate();
+                return Optional.of(new OrderDto(orderId, orderPrice, purchaseDate));
+            } else {
+                throw new ResourceNotFoundException(orderId);
+            }
         }
     }
-
 
 }

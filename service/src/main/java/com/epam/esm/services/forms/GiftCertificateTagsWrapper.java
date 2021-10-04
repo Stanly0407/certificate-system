@@ -3,36 +3,58 @@ package com.epam.esm.services.forms;
 
 import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import javax.validation.Valid;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.util.List;
 
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class GiftCertificateTagsWrapper {
 
-    private GiftCertificate giftCertificate;
-    private List<Tag> tags;
+    @NotEmpty
+    @Size(min = 3, max = 32)
+    private String name;
 
-    public GiftCertificateTagsWrapper() {
-    }
+    @NotEmpty
+    @Size(min = 3, max = 1000)
+    private String description;
 
-    public GiftCertificateTagsWrapper(GiftCertificate giftCertificate, List<Tag> tags) {
-        this.giftCertificate = giftCertificate;
-        this.tags = tags;
-    }
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 10, fraction = 2)
+    private BigDecimal price;
 
-    public List<Tag> getTags() {
-        return tags;
-    }
+    @NotNull
+    @Min(1)
+    @Max(300)
+    private int duration; // the validity of the gift certificate
 
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
-    }
+    @NotNull
+    private List<@Valid Tag> tags;
 
     public GiftCertificate getGiftCertificate() {
-        return giftCertificate;
+        return GiftCertificate.builder()
+                .name(name)
+                .description(description)
+                .price(price)
+                .duration(duration)
+                .build();
     }
 
-    public void setGiftCertificate(GiftCertificate giftCertificate) {
-        this.giftCertificate = giftCertificate;
-    }
+    ;
 
 }
