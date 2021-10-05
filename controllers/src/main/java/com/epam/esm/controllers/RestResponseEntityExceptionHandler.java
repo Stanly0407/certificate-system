@@ -29,8 +29,8 @@ import static com.epam.esm.services.exceptions.ExceptionMessageType.INVALID_INPU
 import static com.epam.esm.services.exceptions.ExceptionMessageType.INVALID_PATH_VARIABLE;
 import static com.epam.esm.services.exceptions.ExceptionMessageType.METHOD_NOT_SUPPORTED;
 import static com.epam.esm.services.exceptions.ExceptionMessageType.MISSING_PATH_VARIABLE;
-import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUNT_PAGE;
-import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUNT_RESOURCE;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUND_PAGE;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUND_RESOURCE;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -59,7 +59,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected final ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception,
                                                                                   WebRequest request) {
         Locale locale = request.getLocale();
-        exception.setType(NOT_FOUNT_RESOURCE);
+        exception.setType(NOT_FOUND_RESOURCE);
         ErrorResponse error = exception.getErrorResponse(locale);
         LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
@@ -69,7 +69,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException exception, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
         Locale locale = request.getLocale();
-        ResourceNotFoundException resourceNotFoundException = ResourceNotFoundException.builder().type(NOT_FOUNT_PAGE).build();
+        ResourceNotFoundException resourceNotFoundException = ResourceNotFoundException.builder().type(NOT_FOUND_PAGE).build();
         ErrorResponse error = resourceNotFoundException.getErrorResponse(locale);
         LOGGER.error("Exception: " + exception + "\n Exception message: " + exception.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);

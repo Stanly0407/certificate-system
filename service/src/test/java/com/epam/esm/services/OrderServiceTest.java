@@ -199,17 +199,15 @@ public class OrderServiceTest {
 
     @Test
     public void getPaidOrderByIdTest() throws ResourceNotFoundException {
-        OrderDto expectedOrderDto = OrderDto.builder().id(1L).orderPrice(new BigDecimal("1.00"))
+        OrderDto expected = OrderDto.builder().id(1L).orderPrice(new BigDecimal("1.00"))
                 .purchaseDate(LocalDateTime.of(2021, 8, 26, 10, 10, 10)).build();
-        Optional<OrderDto> expected = Optional.of(expectedOrderDto);
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.of(PAID_ORDER));
 
-        Optional<OrderDto> actual = orderService.getPaidOrderById(TEST_ID);
+        OrderDto actual = orderService.getPaidOrderById(TEST_ID);
 
         Assertions.assertEquals(expected, actual);
 
         Mockito.verify(orderRepository).findById(anyLong());
-
     }
 
     @Test

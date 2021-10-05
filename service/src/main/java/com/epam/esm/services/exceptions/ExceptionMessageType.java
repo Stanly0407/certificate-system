@@ -11,8 +11,9 @@ public enum ExceptionMessageType {
     MISSING_PATH_VARIABLE("MissingPathVariable", 40006),
     ALREADY_EXISTS("exists", 40007),
 
-    NOT_FOUNT_RESOURCE("common", 40401),
-    NOT_FOUNT_PAGE("page", 40402),
+    NOT_FOUND_RESOURCE("resource", 40401),
+    NOT_FOUND_PAGE("page", 40402),
+    NOT_FOUND_COMMON("common", 40403),
 
     INTERNAL_ERROR("message.exception.internal", 50001);
 
@@ -31,4 +32,5 @@ public enum ExceptionMessageType {
     public int getErrorCode() {
         return errorCode;
     }
+
 }

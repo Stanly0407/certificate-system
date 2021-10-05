@@ -16,13 +16,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
+    private static final Long TEST_ID = 1L;
     private static final int PAGE = 1;
     private static final int SIZE = 5;
 
@@ -35,6 +38,29 @@ public class UserServiceTest {
     @AfterEach
     void tearDown() {
         verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    public void getByIdTest() throws ResourceNotFoundException {
+        User expected = User.builder().name("First").lastname("LastnameFirst").login("test1").password("1111").build();
+        when(userRepository.getById(TEST_ID)).thenReturn(Optional.of(expected));
+
+        User actual = userService.getById(TEST_ID);
+
+        Assertions.assertEquals(expected, actual);
+
+        Mockito.verify(userRepository).getById(anyLong());
+    }
+
+    @Test
+    public void ShouldThrowException() {
+        when(userRepository.getById(TEST_ID)).thenReturn(Optional.empty());
+
+        Executable executable = () -> userService.getById(TEST_ID);
+
+        Assertions.assertThrows(ResourceNotFoundException.class, executable);
+
+        Mockito.verify(userRepository).getById(anyLong());
     }
 
     @Test

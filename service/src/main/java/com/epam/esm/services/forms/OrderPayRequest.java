@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.NonNull;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,11 +14,11 @@ import javax.validation.constraints.Min;
 @Builder
 public class OrderPayRequest {
 
-    @NonNull
+    @NotNull
     @Min(1)
     private Long userId;
 
-    @NonNull
+    @NotNull
     @Min(1)
     private Long orderId;
 

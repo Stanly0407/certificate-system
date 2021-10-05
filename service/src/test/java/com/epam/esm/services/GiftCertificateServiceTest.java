@@ -6,6 +6,7 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -103,23 +104,27 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    public void updateGiftCertificateTest() {
+    public void updateGiftCertificateTest() throws ResourceNotFoundException {
+        GiftCertificate giftCertificate = GiftCertificate.builder().id(1L).name("name").description("description")
+                .price(new BigDecimal("1.00")).duration(1).tags(Arrays.asList(TAG_FIRST, TAG_SECOND)).build();
         List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
         Optional<Tag> tagFirstOptional = Optional.of(TAG_FIRST);
         Optional<Tag> tagSecondOptional = Optional.of(TAG_SECOND);
-
-        doNothing().when(giftCertificateRepository).update(GIFT_CERTIFICATE_FIRST);
+        GiftCertificateTagsWrapper giftCertificateTagsWrapper = GiftCertificateTagsWrapper.builder()
+                .name("name").description("description").duration(1).price(new BigDecimal("1.00")).tags(tags).build();
+        when(giftCertificateRepository.findById(TEST_ID)).thenReturn(Optional.of(giftCertificate));
+        doNothing().when(giftCertificateRepository).update(giftCertificate);
         doNothing().when(tagRepository).deleteGiftCertificateTags(TEST_ID);
         when(tagRepository.findTagByName(FIRST_TAG_NAME)).thenReturn(tagFirstOptional);
         when(tagRepository.findTagByName(SECOND_TAG_NAME)).thenReturn(Optional.empty());
-
         when(tagRepository.findById(NEW_TAG_ID)).thenReturn(tagSecondOptional);
         when(tagRepository.save(TAG_SECOND)).thenReturn(NEW_TAG_ID);
-        doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_FIRST);
-        doNothing().when(giftCertificateRepository).addTagToGiftCertificate(GIFT_CERTIFICATE_FIRST, TAG_SECOND);
+        doNothing().when(giftCertificateRepository).addTagToGiftCertificate(giftCertificate, TAG_FIRST);
+        doNothing().when(giftCertificateRepository).addTagToGiftCertificate(giftCertificate, TAG_SECOND);
 
-        giftCertificateService.updateGiftCertificate(GIFT_CERTIFICATE_FIRST, tags);
+        giftCertificateService.updateGiftCertificate(TEST_ID, giftCertificateTagsWrapper);
 
+        verify(giftCertificateRepository).findById(anyLong());
         verify(giftCertificateRepository).update(any(GiftCertificate.class));
         verify(tagRepository).deleteGiftCertificateTags(anyLong());
         verify(tagRepository).save(any(Tag.class));

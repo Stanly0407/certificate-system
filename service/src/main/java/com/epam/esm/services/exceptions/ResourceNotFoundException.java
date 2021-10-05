@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Locale;
 
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUND_COMMON;
+
 @AllArgsConstructor
 @Getter
 @Setter
@@ -35,6 +37,7 @@ public class ResourceNotFoundException extends Exception {
         if (this.resourceId != null) {
             errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale) + this.resourceId;
         } else {
+            messageKey = NOT_FOUND_ERROR_KEY + NOT_FOUND_COMMON.getMessageKey();
             errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
         }
         int errorCode = this.type.getErrorCode();
