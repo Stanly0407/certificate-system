@@ -15,7 +15,6 @@ import java.util.Optional;
 public class TagRepositoryImpl implements TagRepository {
 
     private static final String SELECT_TAG_BY_NAME = "SELECT t FROM Tag t WHERE t.name= :name";
-    private static final String SELECT_GIFT_CERTIFICATE_TAGS = "SELECT t FROM Tag t JOIN GiftCertificate g WHERE g.id= ?1";
     private static final String DELETE_GIFT_CERTIFICATE_TAGS = "DELETE FROM certificate_tag WHERE certificate_id= :giftCertificateId";
     private static final String SELECT_WIDELY_USED_TAG = "select t.id, t.name , count(*) as used_count from tag t \n" +
             " JOIN certificate_tag ct ON t.id=ct.tag_id JOIN certificate c ON c.id=ct.certificate_id \n" +

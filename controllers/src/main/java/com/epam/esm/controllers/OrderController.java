@@ -22,11 +22,17 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+/**
+ * A class {@code OrderController} as request handler defines method which accepts
+ * user Order requests and performs interactions on the data model objects by using service layer.
+ *
+ * @author Sviatlana Shelestava
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("orders")
 @Validated
@@ -40,8 +46,16 @@ public class OrderController implements BaseController {
         this.linkBuilder = linkBuilder;
     }
 
+    /**
+     * Creates a new user Order;
+     *
+     * @param orderCreateRequest is request body form with user id and ordered giftCertificate id;
+     * @return ResponseEntity representing the whole HTTP response: status code 201 and headers;
+     * @throws ResourceNotFoundException if invalid parameters input for order creation;
+     */
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody @Valid OrderCreateRequest orderCreateRequest) throws ResourceNotFoundException {
+    public ResponseEntity<?> createOrder(@RequestBody @Valid OrderCreateRequest orderCreateRequest)
+            throws ResourceNotFoundException {
         Long userId = orderCreateRequest.getUserId();
         Long giftCertificateId = orderCreateRequest.getGiftCertificateId();
         Long newOrderId = orderService.createOrder(giftCertificateId, userId);
@@ -49,6 +63,13 @@ public class OrderController implements BaseController {
         return ResponseEntity.created(newOrderLink.toUri()).build();
     }
 
+    /**
+     * Pays user Order - only change order payment status;
+     *
+     * @param orderPayRequest is request body form with user id and paid user order id;
+     * @return ResponseEntity representing the whole HTTP response: status code 201 and headers;
+     * @throws ResourceNotFoundException if invalid parameters input for order creation;
+     */
     @PostMapping("/payment")
     public ResponseEntity<?> payOrder(@RequestBody @Valid OrderPayRequest orderPayRequest)
             throws BadRequestException, ResourceNotFoundException {
@@ -56,9 +77,18 @@ public class OrderController implements BaseController {
         Long userId = orderPayRequest.getUserId();
         orderService.payOrder(orderId, userId);
         return ResponseEntity.ok().build();
-
     }
 
+    /**
+     * Finds paid user orders by user id;
+     *
+     * @param userId     is a unique field of the user;
+     * @param pageNumber is a requested number of page with search result;
+     * @param pageSize   is a number of request result displayed
+     * @return ResponseEntity representing the whole HTTP response: status code, headers, and body with collection
+     * <code>List</code> contains users or empty collection <code>List</code>;
+     * @throws ResourceNotFoundException if the requested tag is not found;
+     */
     @GetMapping("info/{userId}")
     public ResponseEntity<?> getUserOrders(@PathVariable @Min(1) Long userId,
                                            @RequestParam(defaultValue = "1", value = "page") @Min(1) int pageNumber,
@@ -66,28 +96,30 @@ public class OrderController implements BaseController {
             throws ResourceNotFoundException {
         long pageQuantity = orderService.getUsersPaginationInfo(pageSize, pageNumber, userId);
         List<OrderDto> paidUserOrders = orderService.getPaidUserOrders(userId, pageNumber, pageSize);
-        if (!paidUserOrders.isEmpty()) {
+        if (paidUserOrders.isEmpty()) {
+            return ResponseEntity.ok().body(paidUserOrders);
+        } else {
             String uriString = linkTo(methodOn(OrderController.class).getUserOrders(userId, pageNumber, pageSize))
                     .toUriComponentsBuilder().buildAndExpand().toString();
             paidUserOrders.forEach(e -> linkBuilder.addSelfLink(e, e.getId(), OrderController.class));
             List<Link> links = linkBuilder.createPaginationLinks(pageQuantity, pageNumber, uriString);
             CollectionModel<OrderDto> result = CollectionModel.of(paidUserOrders, links);
             return ResponseEntity.ok().body(result);
-        } else {
-            return ResponseEntity.ok().body(paidUserOrders);
         }
     }
 
+    /**
+     * Finds paid user order by its id;
+     *
+     * @param orderId is a unique field of the order;
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers and orderDto in the body;
+     * @throws ResourceNotFoundException if the requested tag is not found;
+     */
     @GetMapping("{orderId}")
     public ResponseEntity<?> getPaidOrderMainInfo(@PathVariable @Min(1) Long orderId) throws ResourceNotFoundException {
-        Optional<OrderDto> orderOptional = orderService.getPaidOrderById(orderId);
-        if (orderOptional.isPresent()) {
-            OrderDto order = orderOptional.get();
-            linkBuilder.addSelfLink(order, orderId, OrderController.class);
-            return ResponseEntity.ok().body(order);
-        } else {
-            throw new ResourceNotFoundException(orderId);
-        }
+        OrderDto order = orderService.getPaidOrderById(orderId);
+        linkBuilder.addSelfLink(order, orderId, OrderController.class);
+        return ResponseEntity.ok().body(order);
     }
 
 }

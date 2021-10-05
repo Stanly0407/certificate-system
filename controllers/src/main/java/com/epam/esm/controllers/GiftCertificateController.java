@@ -86,15 +86,8 @@ public class GiftCertificateController implements BaseController {
     public ResponseEntity<?> updateGiftCertificate(@PathVariable @Min(1) Long giftCertificateId,
                                                    @RequestBody @Valid GiftCertificateTagsWrapper giftCertificateTagsWrapper)
             throws ResourceNotFoundException {
-        Optional<GiftCertificate> giftCertificateOptional = giftCertificateService.findById(giftCertificateId);
-        if (giftCertificateOptional.isPresent()) {
-            GiftCertificate updatedGiftCertificate = giftCertificateTagsWrapper.getGiftCertificate();
-            updatedGiftCertificate.setId(giftCertificateId);
-            giftCertificateService.updateGiftCertificate(updatedGiftCertificate, giftCertificateTagsWrapper.getTags());
-            return ResponseEntity.ok().build();
-        } else {
-            throw new ResourceNotFoundException(giftCertificateId);
-        }
+        giftCertificateService.updateGiftCertificate(giftCertificateId, giftCertificateTagsWrapper);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -106,13 +99,8 @@ public class GiftCertificateController implements BaseController {
      */
     @GetMapping("{id}")
     public ResponseEntity<?> getGiftCertificate(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
-        Optional<GiftCertificate> giftCertificateOptional = giftCertificateService.findById(id);
-        if (giftCertificateOptional.isPresent()) {
-            GiftCertificate giftCertificate = giftCertificateOptional.get();
-            return ResponseEntity.ok(giftCertificate);
-        } else {
-            throw new ResourceNotFoundException(id);
-        }
+        GiftCertificate giftCertificate = giftCertificateService.findById(id);
+        return ResponseEntity.ok(giftCertificate);
     }
 
     /**

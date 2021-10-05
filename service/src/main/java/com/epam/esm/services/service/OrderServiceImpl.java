@@ -75,13 +75,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderDto> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
         Optional<User> user = userRepository.getById(userId);
-        if (!user.isPresent()) {
-            throw new ResourceNotFoundException(userId);
-        } else {
+        if (user.isPresent()) {
             List<Order> orders = orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
             return orders.stream().map(e -> OrderDto.builder()
                     .id(e.getId()).orderPrice(e.getOrderPrice()).purchaseDate(e.getPurchaseDate())
                     .build()).collect(Collectors.toList());
+        } else {
+            throw new ResourceNotFoundException(userId);
         }
     }
 
@@ -102,19 +102,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Optional<OrderDto> getPaidOrderById(Long orderId) throws ResourceNotFoundException {
+    public OrderDto getPaidOrderById(Long orderId) throws ResourceNotFoundException {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
-        if (!orderOptional.isPresent()) {
-            throw new ResourceNotFoundException(orderId);
-        } else {
+        if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
             if (order.isPaid()) {
                 BigDecimal orderPrice = order.getOrderPrice();
                 LocalDateTime purchaseDate = order.getPurchaseDate();
-                return Optional.of(new OrderDto(orderId, orderPrice, purchaseDate));
+                return new OrderDto(orderId, orderPrice, purchaseDate);
             } else {
                 throw new ResourceNotFoundException(orderId);
             }
+        } else {
+            throw new ResourceNotFoundException(orderId);
         }
     }
 

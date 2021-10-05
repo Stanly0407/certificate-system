@@ -15,6 +15,8 @@ import java.util.Optional;
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String SELECT_USERS = "select u from User u";
+    private static final String COUNT_USERS = "Select count(u.id) from User u";
+    private static final String SELECT_USER_BY_ID = "select u from User u where u.id = :id";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -23,7 +25,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public Optional<User> getById(Long userId) {
-        Query query = entityManager.createQuery("select u from User u where u.id = :id", User.class);
+        Query query = entityManager.createQuery(SELECT_USER_BY_ID, User.class);
         query.setParameter("id", userId);
         List<User> users = query.getResultList();  // if use getSingleResult(); - need try/catch NoResultException
         if (users.isEmpty()) {
@@ -42,7 +44,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public long getUsersCommonQuantity() {
-        Query queryTotal = entityManager.createQuery("Select count(u.id) from User u"); //todo const
+        Query queryTotal = entityManager.createQuery(COUNT_USERS);
         return (long) queryTotal.getSingleResult();
     }
 

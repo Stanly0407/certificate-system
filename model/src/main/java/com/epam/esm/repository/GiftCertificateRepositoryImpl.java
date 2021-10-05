@@ -152,7 +152,7 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
         query.setParameter("description", giftCertificate.getDescription());
         query.setParameter("price", giftCertificate.getPrice());
         query.setParameter("duration", giftCertificate.getDuration());
-        query.setParameter("id", giftCertificate.getId()); // todo change
+        query.setParameter("id", giftCertificate.getId());
         query.executeUpdate();
     }
 

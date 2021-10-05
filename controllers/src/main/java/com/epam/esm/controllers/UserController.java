@@ -17,7 +17,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -46,30 +45,28 @@ public class UserController implements BaseController {
      * Finds the user by id;
      *
      * @param id is a unique field of the user;
-     * @return the tag object
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers and user in the body;
      * @throws ResourceNotFoundException if the requested user is not found;
      */
     @GetMapping("{id}")
     public ResponseEntity<User> getUser(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
-        Optional<User> userOptional = userService.getById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            linkBuilder.addSelfLink(user, id, UserController.class);
-            return ResponseEntity.ok(user);
-        } else {
-            throw new ResourceNotFoundException(id);
-        }
+        User user = userService.getById(id);
+        linkBuilder.addSelfLink(user, id, UserController.class);
+        return ResponseEntity.ok(user);
     }
 
     /**
      * Returns all users;
      *
-     * @return the collection <code>List</code> of all users;
+     * @return ResponseEntity representing the whole HTTP response: status code 200, headers and
+     * the collection <code>List</code> of users in the body;
+     * @throws ResourceNotFoundException if the requested resource is not found;
      */
     @GetMapping
     public ResponseEntity<CollectionModel<User>> getAllUsers(
             @Valid @RequestParam(defaultValue = "1", value = "page") @Min(1) int pageNumber,
-            @Valid @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) int pageSize) throws ResourceNotFoundException {
+            @Valid @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) int pageSize)
+            throws ResourceNotFoundException {
         List<User> users = userService.getAllUsers(pageNumber, pageSize);
         linkBuilder.addSelfLinks(users, UserController.class);
         long pageQuantity = userService.getUsersPaginationInfo(pageNumber, pageSize);

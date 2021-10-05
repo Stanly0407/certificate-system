@@ -6,6 +6,7 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +43,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         this.tagRepository = tagRepository;
     }
 
-    public Optional<GiftCertificate> findById(Long id) {
-        return giftCertificateRepository.findById(id);
+    public GiftCertificate findById(Long id) throws ResourceNotFoundException {
+        Optional<GiftCertificate> giftCertificateOptional = giftCertificateRepository.findById(id);
+        if (giftCertificateOptional.isPresent()) {
+            return giftCertificateOptional.get();
+        } else {
+            throw new ResourceNotFoundException(id);
+        }
     }
 
     public Long saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
@@ -65,9 +71,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return newGiftCertificateId;
     }
 
-    public void updateGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) {
+    public void updateGiftCertificate(Long giftCertificateId, GiftCertificateTagsWrapper giftCertificateTagsWrapper)
+            throws ResourceNotFoundException {
+        GiftCertificate giftCertificate = findById(giftCertificateId);
+        GiftCertificate updatedGiftCertificate = giftCertificateTagsWrapper.getGiftCertificate();
+        updatedGiftCertificate.setId(giftCertificateId);
         giftCertificateRepository.update(giftCertificate);
         tagRepository.deleteGiftCertificateTags(giftCertificate.getId());
+        List<Tag> tags = giftCertificateTagsWrapper.getTags();
         Optional<Tag> newTag;
         Set<String> uniqueSetOfTags = getUniqueSetOfTags(tags);
         for (String tagName : uniqueSetOfTags) {

@@ -17,8 +17,13 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    public Optional<User> getById(Long id) {
-        return userRepository.getById(id);
+    public User getById(Long id) throws ResourceNotFoundException {
+        Optional<User> userOptional = userRepository.getById(id);
+        if (userOptional.isPresent()) {
+            return userOptional.get();
+        } else {
+            throw new ResourceNotFoundException(id);
+        }
     }
 
     public List<User> getAllUsers(int pageNumber, int pageSize) throws ResourceNotFoundException {
