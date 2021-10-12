@@ -16,11 +16,12 @@ public class TagRepositoryImpl implements TagRepository {
 
     private static final String SELECT_TAG_BY_NAME = "SELECT t FROM Tag t WHERE t.name= :name";
     private static final String DELETE_GIFT_CERTIFICATE_TAGS = "DELETE FROM certificate_tag WHERE certificate_id= :giftCertificateId";
-    private static final String SELECT_WIDELY_USED_TAG = "select t.id, t.name , count(*) as used_count from tag t \n" +
-            " JOIN certificate_tag ct ON t.id=ct.tag_id JOIN certificate c ON c.id=ct.certificate_id \n" +
-            " JOIN purchase_order po ON c.id=po.certificate_id JOIN ( SELECT u.id, SUM(order_price) AS total_cost \n" +
-            " FROM purchase_order po JOIN user u ON po.user_id=u.id GROUP BY u.id order by total_cost desc limit 1 ) " +
-            " as res ON po.user_id=res.id group by t.id , t.name order by used_count desc limit 1;";
+    private static final String SELECT_WIDELY_USED_TAG = " select id, name, used_count, rn_used_count from\n" +
+            "(select t.id, t.name, count(*) as used_count, dense_rank() over (order by count(*) desc) AS rn_used_count from tag t \n" +
+            " JOIN certificate_tag ct ON t.id=ct.tag_id JOIN certificate c ON c.id=ct.certificate_id JOIN purchase_order po " +
+            "ON c.id=po.certificate_id JOIN (SELECT u.id, SUM(order_price), dense_rank() over (order by SUM(order_price) desc) " +
+            "AS rn_total_cost FROM purchase_order po JOIN user u ON po.user_id=u.id GROUP BY u.id) as res ON po.user_id=res.id \n" +
+            "where res.rn_total_cost = 1 group by t.id , t.name) as sub_t where rn_used_count = 1;";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -46,9 +47,8 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
-    public Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
-        Tag tag = (Tag) entityManager.createNativeQuery(SELECT_WIDELY_USED_TAG, Tag.class).getSingleResult();
-        return Optional.of(tag);
+    public List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
+        return entityManager.createNativeQuery(SELECT_WIDELY_USED_TAG, Tag.class).getResultList();
     }
 
     @Override

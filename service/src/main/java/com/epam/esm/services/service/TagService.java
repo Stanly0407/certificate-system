@@ -4,6 +4,7 @@ import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,11 +44,11 @@ public interface TagService {
     void deleteTag(Long id) throws ResourceNotFoundException;
 
     /**
-     * Finds the most widely used tag of a user with the highest cost of all orders;
+     * Finds the most widely used tag or several tags (if the same tag count ) of a user
+     * or several users (if users have the same order amounts) with the highest cost of all orders;
      *
-     * @return an <code>Optional</code> contains the tag object
-     * or <code>Optional</code> contain a null value;
+     * @return an <code>List</code> contains tag or several tags;
      */
-    Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
+    List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }

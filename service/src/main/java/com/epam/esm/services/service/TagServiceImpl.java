@@ -7,6 +7,7 @@ import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.epam.esm.services.exceptions.ExceptionMessageType.ALREADY_EXISTS;
@@ -51,7 +52,7 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    public Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
+    public List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
         return tagRepository.getMostWidelyUsedTagOfUserWithHighestCostOrders();
     }
 

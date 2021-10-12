@@ -2,6 +2,7 @@ package com.epam.esm.repository;
 
 import com.epam.esm.entities.Tag;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -55,11 +56,11 @@ public interface TagRepository {
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * the most widely used tag of a user with the highest cost of all orders;
+     * the most widely used tag or several tags (if the same tag count ) of a user
+     * or several users (if users have the same order amounts) with the highest cost of all orders;
      *
-     * @return an <code>Optional</code> contains the tag with matching name
-     * or <code>Optional</code> contain a null value;
+     * @return an <code>List</code> contains tag or several tags;
      */
-    Optional<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
+    List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }

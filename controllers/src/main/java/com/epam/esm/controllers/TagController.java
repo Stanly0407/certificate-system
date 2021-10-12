@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.Optional;
+import java.util.List;
 
 /**
  * A class {@code TagController} as request handler defines method which accepts
@@ -29,7 +29,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("tags")
 @Validated
-public class TagController implements BaseController {
+public class TagController {
 
     private final TagService tagService;
     private final LinkBuilder linkBuilder;
@@ -84,16 +84,12 @@ public class TagController implements BaseController {
      * Finds the most widely used tag of a user with the highest cost of all orders;
      *
      * @return ResponseEntity representing the whole HTTP response: status code 200, headers and tag in the body;
-     * @throws ResourceNotFoundException if the resource being deleted does not found;
      */
     @GetMapping("/widely-used")
-    public ResponseEntity<?> getMostWidelyUsedTagOfUserWithHighestCostOrders() throws ResourceNotFoundException {
-        Optional<Tag> tag = tagService.getMostWidelyUsedTagOfUserWithHighestCostOrders();
-        if (tag.isPresent()) {
-            return ResponseEntity.ok(tag.get());
-        } else {
-            throw new ResourceNotFoundException();
-        }
+    public ResponseEntity<?> getMostWidelyUsedTagOfUserWithHighestCostOrders() {
+        List<Tag> tags = tagService.getMostWidelyUsedTagOfUserWithHighestCostOrders();
+        linkBuilder.addSelfLinks(tags, TagController.class);
+        return ResponseEntity.ok().body(tags);
     }
 
 }
