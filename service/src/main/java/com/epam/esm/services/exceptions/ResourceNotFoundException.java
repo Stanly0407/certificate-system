@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.Locale;
 
 import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUND_COMMON;
+import static com.epam.esm.services.exceptions.ExceptionMessageType.NOT_FOUND_PAGE;
 
 @AllArgsConstructor
 @Getter
@@ -22,6 +23,7 @@ public class ResourceNotFoundException extends Exception {
     private ExceptionMessageType type;
     private ErrorResponse errorResponse;
     private Long resourceId;
+    private Integer pageNumber;
 
     public ResourceNotFoundException(Long resourceId) {
         this.resourceId = resourceId;
@@ -31,15 +33,24 @@ public class ResourceNotFoundException extends Exception {
         this.resourceId = null;
     }
 
+    public ResourceNotFoundException(Integer pageNumber) {
+        this.resourceId = null;
+        this.pageNumber = pageNumber;
+    }
+
     public ErrorResponse getErrorResponse(Locale locale) {
         String messageKey = NOT_FOUND_ERROR_KEY + this.type.getMessageKey();
         String errorMessage;
         if (this.resourceId != null) {
             errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale) + this.resourceId;
+        } else if (pageNumber != null) {
+            messageKey = NOT_FOUND_ERROR_KEY + NOT_FOUND_PAGE.getMessageKey();
+            errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale) + ", page - " + this.pageNumber;
         } else {
             messageKey = NOT_FOUND_ERROR_KEY + NOT_FOUND_COMMON.getMessageKey();
             errorMessage = ErrorResponse.getMessageForLocale(messageKey, locale);
         }
+
         int errorCode = this.type.getErrorCode();
         return ErrorResponse.builder().errorMessage(errorMessage).errorCode(errorCode).build();
     }
