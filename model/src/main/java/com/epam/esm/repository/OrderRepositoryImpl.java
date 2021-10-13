@@ -25,6 +25,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public long saveOrder(Order order) {
         entityManager.persist(order);
+        entityManager.flush();
         return order.getId();
     }
 

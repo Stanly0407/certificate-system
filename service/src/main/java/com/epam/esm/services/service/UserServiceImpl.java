@@ -1,12 +1,15 @@
 package com.epam.esm.services.service;
 
+import com.epam.esm.entities.Order;
 import com.epam.esm.entities.User;
 import com.epam.esm.repository.UserRepository;
+import com.epam.esm.services.dto.OrderDto;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -31,7 +34,7 @@ public class UserServiceImpl implements UserService {
         if (pageNumber <= pageQuantity) {
             return userRepository.getAllUsers(pageNumber, pageSize);
         } else {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException(pageNumber);
         }
     }
 

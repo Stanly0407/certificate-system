@@ -1,5 +1,6 @@
 package com.epam.esm.services.service;
 
+import com.epam.esm.entities.Order;
 import com.epam.esm.services.dto.OrderDto;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
@@ -30,11 +31,10 @@ public interface OrderService {
      * Changes order payment status as paid;
      *
      * @param orderId is an order id to be paid;
-     * @param userId  is an id of the user who created and pays the order;
      * @throws ResourceNotFoundException if user or order not found;
      * @throws BadRequestException       if invalid parameters input for order payment;
      */
-    void payOrder(Long orderId, Long userId) throws ResourceNotFoundException, BadRequestException;
+    void payOrder(Long orderId) throws ResourceNotFoundException, BadRequestException;
 
     /**
      * Finds paid user orders by user id;
@@ -45,7 +45,7 @@ public interface OrderService {
      * @return a collection <code>List</code> contains the orders or empty collection <code>List</code>;
      * @throws ResourceNotFoundException if the requested tag is not found;
      */
-    List<OrderDto> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException;
+    List<Order> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException;
 
     /**
      * Finds order by id;

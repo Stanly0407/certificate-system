@@ -4,6 +4,7 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ public interface GiftCertificateService {
      *                        the created giftCertificate;
      * @return <code>Long</code> id of new created tag
      */
-    Long saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags);
+    Long saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) throws BadRequestException;
 
     /**
      * Finds giftCertificate by id;
@@ -47,7 +48,7 @@ public interface GiftCertificateService {
      * @throws ResourceNotFoundException if updated resource does not found;
      */
     void updateGiftCertificate(Long giftCertificateId, GiftCertificateTagsWrapper giftCertificateTagsWrapper)
-            throws ResourceNotFoundException;
+            throws ResourceNotFoundException, BadRequestException;
 
     /**
      * Deletes giftCertificate from database by its id;
@@ -87,20 +88,16 @@ public interface GiftCertificateService {
      * @throws ResourceNotFoundException if page does not found;
      */
     Long getPaginationInfo(int pageNumber, int pageSize, List<String> tagNames, String searchCondition)
-            throws ResourceNotFoundException;
+            throws ResourceNotFoundException, BadRequestException;
 
     /**
      * Updates the single field of giftCertificate;
      *
      * @param id          is a unique field of giftCertificate to be updated if not null;
-     * @param name        is a new GiftCertificate name to to be updated if not null;
-     * @param description is a new GiftCertificate description to to be updated if not null;
-     * @param price       is a new GiftCertificate price to to be updated if not null;
-     * @param duration    is a new GiftCertificate duration to to be updated if not null;
-     * @return boolean true if successful update;
+     * @param giftCertificate        is a new GiftCertificate name to to be updated if not null;
      * @throws ResourceNotFoundException if the resource being updated does not found;
      */
-    boolean partialGiftCertificateUpdate(String name, String description, BigDecimal price, Integer duration, Long id)
-            throws ResourceNotFoundException;
+    void partialGiftCertificateUpdate(GiftCertificatePartialUpdateRequest giftCertificate, Long id)
+            throws ResourceNotFoundException, BadRequestException;
 
 }

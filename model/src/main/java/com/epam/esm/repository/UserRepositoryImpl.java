@@ -48,4 +48,6 @@ public class UserRepositoryImpl implements UserRepository {
         return (long) queryTotal.getSingleResult();
     }
 
+
+
 }

@@ -53,33 +53,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void payOrder(Long orderId, Long userId) throws ResourceNotFoundException, BadRequestException {
-        Optional<User> userOptional = userRepository.getById(userId);
+    public void payOrder(Long orderId) throws ResourceNotFoundException, BadRequestException {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
-        Long userIdOfOrder;
-        if (!orderOptional.isPresent()) {
-            throw new ResourceNotFoundException(orderId);
-        } else if (!userOptional.isPresent()) {
-            throw new ResourceNotFoundException(userId);
-        } else {
+        if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
-            userIdOfOrder = order.getUser().getId();
-            if (!userId.equals(userIdOfOrder) || order.isPaid()) {
+            if (order.isPaid()) {
                 throw new BadRequestException(INCORRECT_PARAMETERS);
             } else {
                 orderRepository.updateOrderStatus(orderId);
             }
+        } else {
+            throw new ResourceNotFoundException(orderId);
         }
     }
 
     @Override
-    public List<OrderDto> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
+    public List<Order> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
         Optional<User> user = userRepository.getById(userId);
         if (user.isPresent()) {
-            List<Order> orders = orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
-            return orders.stream().map(e -> OrderDto.builder()
-                    .id(e.getId()).orderPrice(e.getOrderPrice()).purchaseDate(e.getPurchaseDate())
-                    .build()).collect(Collectors.toList());
+            return  orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
         } else {
             throw new ResourceNotFoundException(userId);
         }
@@ -96,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if (pageQuantity < pageNumber) {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException(pageNumber);
         }
         return pageQuantity;
     }
