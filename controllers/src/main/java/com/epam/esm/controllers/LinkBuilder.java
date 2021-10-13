@@ -69,15 +69,15 @@ public class LinkBuilder {
         return links;
     }
 
-    public void addSelfLinks(List<? extends Entity> entities, Class<? extends BaseController> controller) {
+    public void addSelfLinks(List<? extends Entity> entities, Class<?> controller) {
         entities.forEach(e -> e.add(getSelfLink(e.getId(), controller)));
     }
 
-    public void addSelfLink(RepresentationModel<?> entity, Long id, Class<? extends BaseController> controller) {
+    public void addSelfLink(RepresentationModel<?> entity, Long id, Class<?> controller) {
         entity.add(getSelfLink(id, controller));
     }
 
-    public Link getSelfLink(Long id, Class<? extends BaseController> controller) {
+    public Link getSelfLink(Long id, Class<?> controller) {
         return linkTo(controller).slash(id).withSelfRel().expand();
     }
 
