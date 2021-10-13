@@ -4,6 +4,7 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateService;
 import org.springframework.hateoas.CollectionModel;
@@ -26,6 +27,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
@@ -45,7 +47,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("certificates")
 @Validated
-public class GiftCertificateController implements BaseController {
+public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
     private final LinkBuilder linkBuilder;
@@ -64,7 +66,8 @@ public class GiftCertificateController implements BaseController {
      * @return ResponseEntity representing the whole HTTP response: status code 201 and headers
      */
     @PostMapping
-    public ResponseEntity<?> createNewGiftCertificate(@RequestBody @Valid GiftCertificateTagsWrapper giftCertificateTagsWrapper) {
+    public ResponseEntity<?> createNewGiftCertificate(@RequestBody @Valid GiftCertificateTagsWrapper giftCertificateTagsWrapper)
+            throws BadRequestException {
         GiftCertificate giftCertificate = giftCertificateTagsWrapper.getGiftCertificate();
         List<Tag> tagsGiftCertificate = giftCertificateTagsWrapper.getTags();
         Long newGiftCertificateId = giftCertificateService.saveNewGiftCertificate(giftCertificate, tagsGiftCertificate);
@@ -85,7 +88,7 @@ public class GiftCertificateController implements BaseController {
     @PutMapping("{giftCertificateId}")
     public ResponseEntity<?> updateGiftCertificate(@PathVariable @Min(1) Long giftCertificateId,
                                                    @RequestBody @Valid GiftCertificateTagsWrapper giftCertificateTagsWrapper)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, BadRequestException {
         giftCertificateService.updateGiftCertificate(giftCertificateId, giftCertificateTagsWrapper);
         return ResponseEntity.ok().build();
     }
@@ -113,7 +116,7 @@ public class GiftCertificateController implements BaseController {
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteGiftCertificate(@PathVariable @Min(1) Long id) throws ResourceNotFoundException {
         giftCertificateService.deleteGiftCertificate(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -134,15 +137,15 @@ public class GiftCertificateController implements BaseController {
     @GetMapping
     public ResponseEntity<?> findGiftCertificatesByParams(
             @RequestParam(required = false, value = "tag") List<String> tagNames,
-            @RequestParam(required = false, value = "condition") String searchCondition,
+            @RequestParam(required = false, value = "condition") @Size(min=2, max = 10) String searchCondition,
             @RequestParam(required = false, value = "sort") List<String> sortParams,
             @RequestParam(required = false) String order,
             @RequestParam(defaultValue = "1", value = "page") @Min(1) Integer pageNumber,
             @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) Integer pageSize)
             throws BadRequestException, ResourceNotFoundException {
-        Long pageQuantity = giftCertificateService.getPaginationInfo(pageNumber, pageSize, tagNames, searchCondition);
         List<GiftCertificate> giftCertificates = giftCertificateService
                 .findGiftCertificates(tagNames, sortParams, order, searchCondition, pageNumber, pageSize);
+        Long pageQuantity = giftCertificateService.getPaginationInfo(pageNumber, pageSize, tagNames, searchCondition);
 
         if (!giftCertificates.isEmpty()) {
             linkBuilder.addSelfLinks(giftCertificates, GiftCertificateController.class);
@@ -152,7 +155,9 @@ public class GiftCertificateController implements BaseController {
             List<Link> links = linkBuilder.createPaginationLinks(pageQuantity, pageNumber, uriString);
 
             CollectionModel<GiftCertificate> result = CollectionModel.of(giftCertificates, links);
-            return ResponseEntity.ok().body(result);
+            return ResponseEntity.ok()
+                    .header("x-total-page-count", String.valueOf(pageQuantity))
+                    .body(result);
         } else {
             return ResponseEntity.ok().body(giftCertificates);
         }
@@ -161,29 +166,19 @@ public class GiftCertificateController implements BaseController {
     /**
      * Updates the single field of giftCertificate;
      *
-     * @param id          is a unique field of giftCertificate to be updated if not null;
-     * @param name        is a new GiftCertificate name to to be updated if not null;
-     * @param description is a new GiftCertificate description to to be updated if not null;
-     * @param price       is a new GiftCertificate price to to be updated if not null;
-     * @param duration    is a new GiftCertificate duration to to be updated if not null;
+     * @param id              is a unique field of giftCertificate to be updated if not null;
+     * @param giftCertificate is a new GiftCertificate name to to be updated if not null;
      * @return ResponseEntity representing the whole HTTP response: status code, headers, and body
      * @throws ResourceNotFoundException if the resource being updated does not found;
      * @throws BadRequestException       if invalid parameters input;
      */
     @PatchMapping("{id}")
     public ResponseEntity<?> partialUpdateGiftCertificate(
-            @PathVariable Long id,
-            @RequestParam(required = false) @Size(min = 2, max = 30) String name,
-            @RequestParam(required = false) @Size(min = 2, max = 250) String description,
-            @RequestParam(required = false)
-            @DecimalMin(value = "0.01", inclusive = false) @Digits(integer = 10, fraction = 2) BigDecimal price,
-            @RequestParam(required = false) @Min(1) @Max(300) Integer duration)
+            @PathVariable @Min(1) Long id,
+            @RequestBody @Valid GiftCertificatePartialUpdateRequest giftCertificate)
             throws ResourceNotFoundException, BadRequestException {
-        boolean isSuccessfulUpdated = giftCertificateService.partialGiftCertificateUpdate(name, description, price, duration, id);
-        if (isSuccessfulUpdated) {
-            return ResponseEntity.ok().build();
-        } else {
-            throw new BadRequestException(COMMON_BAD_REQUEST);
-        }
+        giftCertificateService.partialGiftCertificateUpdate(giftCertificate, id);
+        return ResponseEntity.ok().build();
     }
+
 }

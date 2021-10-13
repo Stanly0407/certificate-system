@@ -30,9 +30,6 @@
         <Logger name="com.epam.esm" level="info" additivity="true">
             <appender-ref ref="console" level="info" />
         </Logger>
-        <Logger name="com.epam.esm" level="error" additivity="true">
-            <appender-ref ref="console" level="error" />
-        </Logger>
         <Root level="debug" additivity="false">
             <AppenderRef ref="fileLogger" />
         </Root>
