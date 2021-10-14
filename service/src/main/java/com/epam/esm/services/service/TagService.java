@@ -1,7 +1,10 @@
 package com.epam.esm.services.service;
 
 import com.epam.esm.entities.Tag;
+import com.epam.esm.services.exceptions.BadRequestException;
+import com.epam.esm.services.exceptions.ResourceNotFoundException;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,33 +20,35 @@ public interface TagService {
     /**
      * Creates a new tag;
      *
-     * @param tagName is an name of new tag to be created;
+     * @param tag is a tag to be created;
+     * @return <code>Long</code> id of new created tag
+     * @throws BadRequestException if invalid parameters input;
      */
-    void saveNewTag(String tagName);
-
-    /**
-     * Finds tag by id;
-     *
-     * @param tagName is a unique name of the tag;
-     * @return an <code>Optional</code> contains the tag object
-     * or <code>Optional</code> contain a null value;
-     */
-    Optional<Tag> findTagByName(String tagName);
+    Long saveNewTag(String tag) throws BadRequestException;
 
     /**
      * Finds tag by id;
      *
      * @param id is a unique field of the tag in the database;
-     * @return an <code>Optional</code> contains the tag object
-     * or <code>Optional</code> contain a null value;
+     * @return tag if exists;
+     * @throws ResourceNotFoundException if the resource being deleted does not found;
      */
-    Optional<Tag> findTagById(Long id);
+    Tag findTagById(Long id) throws ResourceNotFoundException;
 
     /**
      * Deletes tag from a database by its id;
      *
-     * @param id is a unique field of tag in the database;
+     * @param id is unique field of tag;
+     * @throws ResourceNotFoundException if the resource being deleted does not found;
      */
-    void deleteTag(Long id);
+    void deleteTag(Long id) throws ResourceNotFoundException;
+
+    /**
+     * Finds the most widely used tag or several tags (if the same tag count ) of a user
+     * or several users (if users have the same order amounts) with the highest cost of all orders;
+     *
+     * @return an <code>List</code> contains tag or several tags;
+     */
+    List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }

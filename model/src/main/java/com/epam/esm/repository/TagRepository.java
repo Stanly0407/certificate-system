@@ -16,10 +16,10 @@ public interface TagRepository {
     /**
      * Executes the SQL <code>INSERT</code> statement, which creates new tag in the database;
      *
-     * @param tagName is an name of new tag to be created;
+     * @param tag is a new tag to be created;
      * @return a <code>Long</code> generated id of the newly created tag
      */
-    Long save(String tagName);
+    Long save(Tag tag);
 
     /**
      * Executes an SQL <code>SELECT</code> statement, which searches for tag by id;
@@ -33,9 +33,9 @@ public interface TagRepository {
     /**
      * Executes the SQL <code>DELETE</code> statement, which deletes tag from the database by id;
      *
-     * @param id is a unique field of tag in database;
+     * @param tag is a tag in database;
      */
-    void delete(Long id);
+    void delete(Tag tag);
 
     /**
      * Executes an SQL <code>SELECT</code> statement, which searches for tag by its name;
@@ -56,11 +56,11 @@ public interface TagRepository {
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of tags associated with a specific giftCertificate in the database;
+     * the most widely used tag or several tags (if the same tag count ) of a user
+     * or several users (if users have the same order amounts) with the highest cost of all orders;
      *
-     * @param giftCertificateId is a unique field of giftCertificate in the database;
-     * @return a collection <code>List</code> contains the tags or empty collection <code>List</code>;
+     * @return an <code>List</code> contains tag or several tags;
      */
-    List<Tag> findGiftCertificateTags(Long giftCertificateId);
+    List<Tag> getMostWidelyUsedTagOfUserWithHighestCostOrders();
 
 }

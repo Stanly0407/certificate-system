@@ -57,33 +57,81 @@ public interface GiftCertificateRepository {
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
-     * a collection of giftCertificates associated with a specific tag in the database;
+     * a collection of giftCertificates associated with a specific tag, considering pagination parameters;
      *
-     * @param query   is a part of the SQL statement with sorting conditions if exist;
-     * @param tagName is the name of a tag that may be associated with some giftCertificates;
+     * @param tagName    is the name of a tag that may be associated with some giftCertificates;
+     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (createDate)
+     *                   or "name" of giftCertificate;
+     * @param order      is a ascending ("acs" by default) or descending ("desc") order of sorting;
+     * @param pageNumber is a requested number of page with search result;
+     * @param pageSize   is a number of request result displayed
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findGiftCertificatesByTag(String query, String tagName);
+    List<GiftCertificate> findGiftCertificatesByTag(List<String> sortParams, String order, String tagName,
+                                                    int pageNumber, int pageSize);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
      * a collection of giftCertificates containing in their name or description searchCondition;
      *
-     * @param query           is a part of the SQL statement with sorting conditions if exist;
      * @param searchCondition is a part and whole word that may appear in the name or description
      *                        of the giftCertificate;
+     * @param sortParams      is a collection <code>List</code> of sorting conditions by "date" (createDate)
+     *                        or "name" of giftCertificate;
+     * @param order           is a ascending ("acs" by default) or descending ("desc") order of sorting;
+     * @param pageNumber      is a requested number of page with search result;
+     * @param pageSize        is a number of request result displayed
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findByMatch(String query, String searchCondition);
+    List<GiftCertificate> findByMatch(List<String> sortParams, String order, String searchCondition, int pageNumber, int pageSize);
 
     /**
      * Executes the SQL <code>SELECT</code> statement, which returns
      * a collection of all existed giftCertificates;
      *
-     * @param query is a part of the SQL statement with sorting conditions if exist;
+     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (createDate)
+     *                   or "name" of giftCertificate;
+     * @param order      is a ascending ("acs" by default) or descending ("desc") order of sorting;
+     * @param pageNumber is a requested number of page with search result;
+     * @param pageSize   is a number of request result displayed
      * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
      */
-    List<GiftCertificate> findAllGiftCertificates(String query);
+    List<GiftCertificate> findAllGiftCertificates(List<String> sortParams, String order, int pageNumber, int pageSize);
 
+    /**
+     * Updates the single field of giftCertificate;
+     *
+     * @param giftCertificateId is a unique field of giftCertificate to be updated;
+     * @param parameterName     is a name of GiftCertificate field to to be updated;
+     * @param parameter         is a value of GiftCertificate field to to be updated;;
+     */
+    void partialGiftCertificateUpdate(String parameterName, String parameter, Long giftCertificateId);
+
+    /**
+     * Executes the SQL <code>SELECT</code> statement, which returns
+     * a collection of giftCertificates associated with a specific tag, considering pagination parameters;
+     *
+     * @param tags       is tag names that may be associated with some giftCertificates;
+     * @param sortParams is a collection <code>List</code> of sorting conditions by "date" (createDate)
+     *                   or "name" of giftCertificate;
+     * @param order      is a ascending ("acs" by default) or descending ("desc") order of sorting;
+     * @param pageNumber is a requested number of page with search result;
+     * @param pageSize   is a number of request result displayed
+     * @return a collection <code>List</code> contains the giftCertificates or empty collection <code>List</code>;
+     */
+    List<GiftCertificate> findGiftCertificateBySeveralTags(List<String> sortParams, String order, List<String> tags,
+                                                           int pageNumber, int pageSize);
+
+    /**
+     * Determines, based on the parameters of the search, the number of result pages for pagination purposes;
+     *
+     * @param type            is a type of search;
+     * @param tags            is tag names that may be associated with some giftCertificates if search by tags;
+     * @param tagName         is the name of a tag that may be associated with some giftCertificates if search by single tag;
+     * @param searchCondition is a part and whole word that may appear in the name or description of giftCertificate
+     *                        if search by match;
+     * @return a number of <code>Long</code> request result pages;
+     */
+    long countGiftCertificateSelect(String type, List<String> tags, String searchCondition, String tagName);
 
 }
