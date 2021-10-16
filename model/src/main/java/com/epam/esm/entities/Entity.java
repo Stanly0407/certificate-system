@@ -1,5 +1,6 @@
 package com.epam.esm.entities;
 
+import com.epam.esm.entities.utils.AuditListener;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +38,6 @@ public abstract class Entity extends RepresentationModel<Entity> implements Clon
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     private Long id;
-
 
 }
 

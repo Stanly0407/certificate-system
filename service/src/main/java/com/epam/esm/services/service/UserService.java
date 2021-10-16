@@ -1,7 +1,11 @@
 package com.epam.esm.services.service;
 
 import com.epam.esm.entities.User;
+import com.epam.esm.services.dto.JwtResponse;
+import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.forms.LoginForm;
+import com.epam.esm.services.forms.SignupForm;
 
 import java.util.List;
 
@@ -43,5 +47,9 @@ public interface UserService {
      * @return a <code>Long</code> number of  request result pages;
      */
     long getUsersPaginationInfo(int pageNumber, int pageSize);
+
+    Long saveNewUser(SignupForm signupForm) throws BadRequestException;
+
+    JwtResponse login(LoginForm form);
 
 }

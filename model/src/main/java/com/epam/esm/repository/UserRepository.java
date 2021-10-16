@@ -39,4 +39,12 @@ public interface UserRepository {
      */
     long getUsersCommonQuantity();
 
+    Optional<User> findByLogin(String login);
+
+    boolean existsByLogin(String login);
+
+    Long save(User user);
+
+     void saveRoleUser(Long userId);
+
 }
