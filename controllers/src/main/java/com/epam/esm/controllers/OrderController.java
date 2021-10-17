@@ -7,6 +7,7 @@ import com.epam.esm.services.forms.OrderCreateRequest;
 import com.epam.esm.services.service.OrderService;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,7 @@ public class OrderController {
      * @throws ResourceNotFoundException if invalid parameters input for order creation;
      */
     @PostMapping
+ //   @Secured("USER")
     public ResponseEntity<?> createOrder(@RequestBody @Valid OrderCreateRequest orderCreateRequest)
             throws ResourceNotFoundException {
         Long userId = orderCreateRequest.getUserId();

@@ -2,6 +2,8 @@ package com.epam.esm.configuration.security;
 
 import com.epam.esm.services.service.security.UserDetailsServiceImpl;
 import com.epam.esm.services.service.utils.JwtGenerator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +21,8 @@ import java.io.IOException;
 
 public class AuthenticationJwtFilter extends OncePerRequestFilter {
 
+    private static final Logger LOGGER = LogManager.getLogger(AuthenticationJwtFilter.class);
+
     @Autowired
     private JwtGenerator jwtGenerator;
 
@@ -31,17 +35,16 @@ public class AuthenticationJwtFilter extends OncePerRequestFilter {
         try {
             String jwt = parseJwt(request);
             if (jwt != null && jwtGenerator.validateJwtToken(jwt)) {
-                String username = jwtGenerator.getUserNameFromJwtToken(jwt);
+                String username = jwtGenerator.getLoginFromJwtToken(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+        } catch (Exception exception) {
+            LOGGER.info("Cannot set user authentication: " + exception);
         }
-
         filterChain.doFilter(request, response);
     }
 

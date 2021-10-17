@@ -80,7 +80,7 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    public void saveNewGiftCertificateTest() {
+    public void saveNewGiftCertificateTest() throws BadRequestException {
         List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
         Optional<Tag> tagFirstOptional = Optional.of(TAG_FIRST);
         Optional<Tag> tagSecondOptional = Optional.of(TAG_SECOND);
@@ -104,7 +104,7 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    public void updateGiftCertificateTest() throws ResourceNotFoundException {
+    public void updateGiftCertificateTest() throws ResourceNotFoundException, BadRequestException {
         GiftCertificate giftCertificate = GiftCertificate.builder().id(1L).name("name").description("description")
                 .price(new BigDecimal("1.00")).duration(1).tags(Arrays.asList(TAG_FIRST, TAG_SECOND)).build();
         List<Tag> tags = Arrays.asList(TAG_FIRST, TAG_SECOND);
@@ -296,7 +296,7 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    public void getPaginationInfoTestShouldReturnPageQuantity() throws ResourceNotFoundException {
+    public void getPaginationInfoTestShouldReturnPageQuantity() throws ResourceNotFoundException, BadRequestException {
         Long countResult = 3L;
         Long expected = 2L;
         int pageNumber = 1;
@@ -325,46 +325,5 @@ public class GiftCertificateServiceTest {
 
         Assertions.assertThrows(ResourceNotFoundException.class, executable);
     }
-
-    @Test
-    public void partialGiftCertificateUpdateTest() throws ResourceNotFoundException {
-        String newGiftCertificateName = "updated";
-        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.of(GIFT_CERTIFICATE_THIRD));
-        doNothing().when(giftCertificateRepository)
-                .partialGiftCertificateUpdate("name", newGiftCertificateName, 3L);
-
-        boolean actual = giftCertificateService
-                .partialGiftCertificateUpdate(newGiftCertificateName, NULL_STRING_PARAM, null, null, 3L);
-
-        assertTrue(actual);
-
-        Mockito.verify(giftCertificateRepository).findById(anyLong());
-        Mockito.verify(giftCertificateRepository).partialGiftCertificateUpdate(anyString(), anyString(), anyLong());
-    }
-
-    @Test
-    public void partialGiftCertificateUpdateTestShouldReturnFalseIfNotOneParam() throws ResourceNotFoundException {
-        String newParam = "updated";
-        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.of(GIFT_CERTIFICATE_THIRD));
-
-        boolean actual = giftCertificateService
-                .partialGiftCertificateUpdate(newParam, newParam, null, null, 3L);
-
-        assertFalse(actual);
-
-        Mockito.verify(giftCertificateRepository).findById(anyLong());
-    }
-
-    @Test
-    public void partialGiftCertificateUpdateTestShouldThrowException() {
-        String newGiftCertificateName = "updated";
-        when(giftCertificateRepository.findById(3L)).thenReturn(Optional.empty());
-
-        Executable executable = () -> giftCertificateService
-                .partialGiftCertificateUpdate(newGiftCertificateName, NULL_STRING_PARAM, null, null, 3L);
-
-        Assertions.assertThrows(ResourceNotFoundException.class, executable);
-    }
-
 
 }

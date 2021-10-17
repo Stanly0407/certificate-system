@@ -17,6 +17,8 @@ public class JwtResponse {
 
     private final String type = "Bearer"; // ru = токен предъявителя
 
+    private String refreshToken;
+
     private Long id;
 
     private String login;

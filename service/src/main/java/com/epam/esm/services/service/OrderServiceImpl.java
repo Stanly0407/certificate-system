@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.epam.esm.services.exceptions.ExceptionMessageType.INCORRECT_PARAMETERS;
 
@@ -71,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
     public List<Order> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
         Optional<User> user = userRepository.getById(userId);
         if (user.isPresent()) {
-            return  orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
+            return orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
         } else {
             throw new ResourceNotFoundException(userId);
         }

@@ -1,6 +1,7 @@
 package com.epam.esm.repository;
 
 import com.epam.esm.entities.Order;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
+@NoArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
 
     private static final String UPDATE_ORDER_IS_PAID_FIELD = "UPDATE Order o SET o.isPaid = true WHERE o.id = :orderId";

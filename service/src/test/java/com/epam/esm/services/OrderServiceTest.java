@@ -108,68 +108,58 @@ public class OrderServiceTest {
 
     @Test
     public void payOrderTest() throws ResourceNotFoundException, BadRequestException {
-        when(userRepository.getById(TEST_ID)).thenReturn(Optional.of(USER));
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.of(ORDER));
         doNothing().when(orderRepository).updateOrderStatus(TEST_ID);
 
-        orderService.payOrder(TEST_ID, TEST_ID);
+        orderService.payOrder(TEST_ID);
 
-        Mockito.verify(userRepository).getById(anyLong());
         Mockito.verify(orderRepository).findById(anyLong());
         Mockito.verify(orderRepository).updateOrderStatus(anyLong());
     }
 
     @Test
     public void payOrderTestShouldThrowExceptionIfOrderPaid() {
-        when(userRepository.getById(TEST_ID)).thenReturn(Optional.of(USER));
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.of(PAID_ORDER));
 
-        Executable executable = () -> orderService.payOrder(TEST_ID, TEST_ID);
+        Executable executable = () -> orderService.payOrder(TEST_ID);
 
         Assertions.assertThrows(BadRequestException.class, executable);
 
-        Mockito.verify(userRepository).getById(anyLong());
         Mockito.verify(orderRepository).findById(anyLong());
     }
 
     @Test
     public void payOrderTestShouldThrowExceptionIfNonExistentOrder() {
-        when(userRepository.getById(TEST_ID)).thenReturn(Optional.of(USER));
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.empty());
 
-        Executable executable = () -> orderService.payOrder(TEST_ID, TEST_ID);
+        Executable executable = () -> orderService.payOrder(TEST_ID);
 
         Assertions.assertThrows(ResourceNotFoundException.class, executable);
 
-        Mockito.verify(userRepository).getById(anyLong());
         Mockito.verify(orderRepository).findById(anyLong());
     }
 
     @Test
     public void payOrderTestShouldThrowExceptionIfNonExistentUser() {
-        when(userRepository.getById(TEST_ID)).thenReturn(Optional.empty());
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.of(ORDER));
 
-        Executable executable = () -> orderService.payOrder(TEST_ID, TEST_ID);
+        Executable executable = () -> orderService.payOrder(TEST_ID);
 
         Assertions.assertThrows(ResourceNotFoundException.class, executable);
 
-        Mockito.verify(userRepository).getById(anyLong());
         Mockito.verify(orderRepository).findById(anyLong());
     }
 
     @Test
     public void payOrderTestShouldThrowExceptionIfDifferentUserId() {
         User user = User.builder().id(2L).build();
-        when(userRepository.getById(TEST_ID)).thenReturn(Optional.of(user));
-        Order order = Order.builder().id(1L).orderPrice(new BigDecimal("1.00")).user(user).isPaid(false).build();
+        Order order = Order.builder().id(TEST_ID).orderPrice(new BigDecimal("1.00")).user(user).isPaid(false).build();
         when(orderRepository.findById(TEST_ID)).thenReturn(Optional.of(order));
 
-        Executable executable = () -> orderService.payOrder(TEST_ID, 1L);
+        Executable executable = () -> orderService.payOrder(TEST_ID);
 
         Assertions.assertThrows(BadRequestException.class, executable);
 
-        Mockito.verify(userRepository).getById(anyLong());
         Mockito.verify(orderRepository).findById(anyLong());
     }
 

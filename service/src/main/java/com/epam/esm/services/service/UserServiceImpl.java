@@ -1,5 +1,6 @@
 package com.epam.esm.services.service;
 
+import com.epam.esm.entities.RefreshToken;
 import com.epam.esm.entities.User;
 import com.epam.esm.repository.UserRepository;
 import com.epam.esm.services.dto.JwtResponse;
@@ -33,13 +34,15 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtGenerator jwtGenerator;
     private final PasswordEncoder encoder;
+    private final RefreshTokenService refreshTokenService;
 
     public UserServiceImpl(UserRepository userRepository, AuthenticationManager authenticationManager,
-                           JwtGenerator jwtGenerator, PasswordEncoder encoder) {
+                           JwtGenerator jwtGenerator, PasswordEncoder encoder, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtGenerator = jwtGenerator;
         this.encoder = encoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public User getById(Long id) throws ResourceNotFoundException {
@@ -103,15 +106,16 @@ public class UserServiceImpl implements UserService {
         Long id = userDetails.getId();
         String login = userDetails.getUsername();
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
         LOGGER.info("User with id = " + id + ", login = " + login + " login successfully!");
         return JwtResponse.builder()
                 .id(id)
                 .login(login)
                 .roles(roles)
                 .token(jwt)
+                .refreshToken(refreshToken.getToken())
                 .build();
-
     }
-
 
 }

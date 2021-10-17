@@ -3,12 +3,14 @@ package com.epam.esm.controllers;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ErrorResponse;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.exceptions.TokenRefreshException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -35,6 +37,14 @@ import static com.epam.esm.services.exceptions.ExceptionMessageType.UNKNOWN_PROP
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(RestResponseEntityExceptionHandler.class);
+
+    @ExceptionHandler(TokenRefreshException.class)
+    public ResponseEntity<?> handleTokenRefreshException(TokenRefreshException exception, WebRequest request) {
+        Locale locale = request.getLocale();
+        ErrorResponse error = exception.getErrorResponse(locale);
+        LOGGER.info("Exception: " + exception.getLocalizedMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 
     @ExceptionHandler({BadRequestException.class})
     protected final ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException exception, WebRequest request) {

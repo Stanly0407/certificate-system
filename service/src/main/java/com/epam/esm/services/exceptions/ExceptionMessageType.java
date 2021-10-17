@@ -14,6 +14,13 @@ public enum ExceptionMessageType {
     UNKNOWN_PROPERTIES("unknownProperties", 40009),
     INCORRECT_SORT("incorrectSort", 40010),
 
+    UNAUTHORIZED("message.security.unauthorized", 40101),
+    EXPIRED("expired", 40102),
+    UNKNOWN_REFRESH_TOKEN("unknown", 40103),
+    UNKNOWN_USER("message.security.unknownUser", 40104),
+
+    FORBIDDEN("message.security.accessDenied", 40301),
+
     NOT_FOUND_RESOURCE("resource", 40401),
     NOT_FOUND_PAGE("page", 40402),
     NOT_FOUND_COMMON("common", 40403),

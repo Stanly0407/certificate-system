@@ -30,18 +30,26 @@ public class JwtGenerator {
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
         String subject = userPrincipal.getUsername(); // login
+        return generateTokenFromLogin(subject);
+    }
+
+    public String generateTokenFromLogin(String login) {
         Date now = new Date();
         Date expiresJwt = new Date((new Date()).getTime() + jwtExpirationMs);
         return Jwts.builder()
-                .setSubject(subject)
+                .setSubject(login)
                 .setIssuedAt(now)
                 .setExpiration(expiresJwt)
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+    public String getLoginFromJwtToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
     public boolean validateJwtToken(String authToken) {
@@ -59,7 +67,7 @@ public class JwtGenerator {
         } catch (IllegalArgumentException e) {
             LOGGER.info("JWT claims string is empty: {}", e.getMessage());
         }
-        return false;
+        return false; //todo exception handling
     }
 
 }

@@ -1,6 +1,7 @@
 package com.epam.esm.repository;
 
 import com.epam.esm.entities.Tag;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
+@NoArgsConstructor
 public class TagRepositoryImpl implements TagRepository {
 
     private static final String SELECT_TAG_BY_NAME = "SELECT t FROM Tag t WHERE t.name= :name";
@@ -25,9 +27,6 @@ public class TagRepositoryImpl implements TagRepository {
 
     @PersistenceContext
     EntityManager entityManager;
-
-    public TagRepositoryImpl() {
-    }
 
     public Optional<Tag> findTagByName(String name) {
         Query query = entityManager.createQuery(SELECT_TAG_BY_NAME, Tag.class);
