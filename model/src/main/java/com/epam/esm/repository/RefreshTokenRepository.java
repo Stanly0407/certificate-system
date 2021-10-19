@@ -12,12 +12,28 @@ import java.util.Optional;
  */
 public interface RefreshTokenRepository {
 
-    Optional<RefreshToken> findById(Long id);
-
+    /**
+     * Executes an SQL <code>SELECT</code> statement, which searches for RefreshToken entity by token value;
+     *
+     * @param token is a token value of RefreshToken in database;
+     * @return an <code>Optional</code> contains the RefreshToken with matching token value
+     * or <code>Optional</code> contain a null value;
+     */
     Optional<RefreshToken> findByToken(String token);
 
+    /**
+     * Executes the SQL <code>INSERT</code> statement, which creates new user's refreshToken in database;
+     *
+     * @param refreshToken is a refreshToken to be created;
+     * @return a just created user's <code>RefreshToken</code>;
+     */
     RefreshToken save(RefreshToken refreshToken);
 
+    /**
+     * Executes the SQL <code>DELETE</code> statement, which deletes this user's refreshToken from database;
+     *
+     * @param refreshToken is a refreshToken of the user to be deleted from a database;
+     */
     void delete(RefreshToken refreshToken);
 
 }

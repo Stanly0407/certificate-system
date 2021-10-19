@@ -10,9 +10,8 @@ import com.epam.esm.services.forms.SignupForm;
 import java.util.List;
 
 /**
- * An interface {@code UserService} defines the service layer for a tag entity with business logic
- * methods (fetching data, deleting, etc.) that access the data access layer
- * and prepares the data to the users if required.
+ * An interface {@code UserService} defines the service layer for a user entity with business logic
+ * methods (fetching data, deleting, etc.) that access the data access layer.
  *
  * @author Sviatlana Shelestava
  * @since 1.0
@@ -48,8 +47,21 @@ public interface UserService {
      */
     long getUsersPaginationInfo(int pageNumber, int pageSize);
 
+    /**
+     * Creates a new user with associated roles;
+     *
+     * @param signupForm contains base information of user to be created;
+     * @return <code>Long</code> id of new created user;
+     */
     Long saveNewUser(SignupForm signupForm) throws BadRequestException;
 
-    JwtResponse login(LoginForm form);
+    /**
+     * Checks if a user exists with the specified login and password and,
+     * if successful, issues a token to access application resources;
+     *
+     * @param loginForm contains base information of the user: login and password;
+     * @return JwtResponse is response with generated user JSON Web Token, refresh token and based user info;
+     */
+    JwtResponse login(LoginForm loginForm);
 
 }

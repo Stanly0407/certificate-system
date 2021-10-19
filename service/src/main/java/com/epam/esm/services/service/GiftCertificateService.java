@@ -7,7 +7,6 @@ import com.epam.esm.services.exceptions.ResourceNotFoundException;
 import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
 import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -26,7 +25,7 @@ public interface GiftCertificateService {
      * @param giftCertificate is an entity to be created;
      * @param tags            are tags that will be created if they do not exist and are associated with
      *                        the created giftCertificate;
-     * @return <code>Long</code> id of new created tag
+     * @return <code>Long</code> id of new created giftCertificate;
      */
     Long saveNewGiftCertificate(GiftCertificate giftCertificate, List<Tag> tags) throws BadRequestException;
 
@@ -93,8 +92,8 @@ public interface GiftCertificateService {
     /**
      * Updates the single field of giftCertificate;
      *
-     * @param id          is a unique field of giftCertificate to be updated if not null;
-     * @param giftCertificate        is a new GiftCertificate name to to be updated if not null;
+     * @param id              is a unique field of giftCertificate to be updated if not null;
+     * @param giftCertificate is a new GiftCertificate name to to be updated if not null;
      * @throws ResourceNotFoundException if the resource being updated does not found;
      */
     void partialGiftCertificateUpdate(GiftCertificatePartialUpdateRequest giftCertificate, Long id)
