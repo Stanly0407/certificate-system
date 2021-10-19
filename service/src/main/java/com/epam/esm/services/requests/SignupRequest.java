@@ -1,4 +1,4 @@
-package com.epam.esm.services.forms;
+package com.epam.esm.services.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SignupForm {
+public class SignupRequest {
 
     @NotBlank
     @Size(min = 3, max = 20)

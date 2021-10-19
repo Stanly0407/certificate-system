@@ -8,7 +8,7 @@ import java.util.Optional;
  * An interface {@code RefreshTokenRepository} defines the methods for retrieving refresh token data from the database;
  *
  * @author Sviatlana Shelestava
- * @since 1.0
+ * @since 3.0
  */
 public interface RefreshTokenRepository {
 

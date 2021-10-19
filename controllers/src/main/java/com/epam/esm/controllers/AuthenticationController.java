@@ -3,9 +3,9 @@ package com.epam.esm.controllers;
 import com.epam.esm.services.dto.JwtResponse;
 import com.epam.esm.services.dto.TokenRefreshResponse;
 import com.epam.esm.services.exceptions.BadRequestException;
-import com.epam.esm.services.forms.LoginForm;
-import com.epam.esm.services.forms.SignupForm;
-import com.epam.esm.services.forms.TokenRefreshRequest;
+import com.epam.esm.services.exceptions.UnprocessableEntityException;
+import com.epam.esm.services.requests.LoginRequest;
+import com.epam.esm.services.requests.SignupRequest;
 import com.epam.esm.services.service.RefreshTokenService;
 import com.epam.esm.services.service.UserService;
 import org.springframework.hateoas.Link;
@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,10 +24,10 @@ import javax.validation.Valid;
  * user authentication requests and performs interactions on the data model objects by using service layer.
  *
  * @author Sviatlana Shelestava
- * @since 1.0
+ * @since 3.0
  */
 @RestController
-@RequestMapping("public")
+@RequestMapping("auth")
 @Validated
 public class AuthenticationController {
 
@@ -44,24 +45,25 @@ public class AuthenticationController {
      * Checks if a user exists with the specified login and password and,
      * if successful, issues a token to access application resources;
      *
-     * @param loginForm contains base information of the user: login and password;
+     * @param loginRequest contains base information of the user: login and password;
      * @return ResponseEntity representing the whole HTTP response: status code 200 and headers
      */
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid LoginForm loginForm) {
-        JwtResponse jwtResponse = userService.login(loginForm);
+    @PostMapping("login")
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest loginRequest) {
+        JwtResponse jwtResponse = userService.login(loginRequest);
         return ResponseEntity.ok(jwtResponse);
     }
 
     /**
      * Creates a new user with role USER;
      *
-     * @param signupForm contains base information of user to be created;
+     * @param signupRequest contains base information of user to be created;
      * @return ResponseEntity representing the whole HTTP response: status code 201 and headers
      */
-    @PostMapping("/signup")
-    public ResponseEntity<?> signupNewUser(@RequestBody @Valid SignupForm signupForm) throws BadRequestException {
-        long newUserId = userService.saveNewUser(signupForm);
+    @PostMapping("signup")
+    public ResponseEntity<?> signupNewUser(@RequestBody @Valid SignupRequest signupRequest) throws BadRequestException,
+            UnprocessableEntityException {
+        long newUserId = userService.saveNewUser(signupRequest);
         Link newUserLink = linkBuilder.getSelfLink(newUserId, AuthenticationController.class);
         return ResponseEntity.created(newUserLink.toUri()).build();
     }
@@ -69,12 +71,12 @@ public class AuthenticationController {
     /**
      * Creates a new RefreshToken for logged in user;
      *
-     * @param tokenRefreshRequest is a users's RefreshToken;
+     * @param refreshToken is a users's RefreshToken;
      * @return ResponseEntity representing the whole HTTP response: status code 200 and headers
      */
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody @Valid TokenRefreshRequest tokenRefreshRequest) {
-        TokenRefreshResponse tokenRefreshResponse = refreshTokenService.refreshToken(tokenRefreshRequest);
+    @PostMapping("token")
+    public ResponseEntity<?> refreshToken(@RequestHeader("x-refresh-token") String refreshToken) {
+        TokenRefreshResponse tokenRefreshResponse = refreshTokenService.refreshToken(refreshToken);
         return ResponseEntity.ok(tokenRefreshResponse);
     }
 

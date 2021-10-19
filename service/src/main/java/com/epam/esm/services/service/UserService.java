@@ -4,8 +4,9 @@ import com.epam.esm.entities.User;
 import com.epam.esm.services.dto.JwtResponse;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
-import com.epam.esm.services.forms.LoginForm;
-import com.epam.esm.services.forms.SignupForm;
+import com.epam.esm.services.exceptions.UnprocessableEntityException;
+import com.epam.esm.services.requests.LoginRequest;
+import com.epam.esm.services.requests.SignupRequest;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * methods (fetching data, deleting, etc.) that access the data access layer.
  *
  * @author Sviatlana Shelestava
- * @since 1.0
+ * @since 2.0
  */
 public interface UserService {
 
@@ -50,18 +51,18 @@ public interface UserService {
     /**
      * Creates a new user with associated roles;
      *
-     * @param signupForm contains base information of user to be created;
+     * @param signupRequest contains base information of user to be created;
      * @return <code>Long</code> id of new created user;
      */
-    Long saveNewUser(SignupForm signupForm) throws BadRequestException;
+    Long saveNewUser(SignupRequest signupRequest) throws BadRequestException, UnprocessableEntityException;
 
     /**
      * Checks if a user exists with the specified login and password and,
      * if successful, issues a token to access application resources;
      *
-     * @param loginForm contains base information of the user: login and password;
+     * @param loginRequest contains base information of the user: login and password;
      * @return JwtResponse is response with generated user JSON Web Token, refresh token and based user info;
      */
-    JwtResponse login(LoginForm loginForm);
+    JwtResponse login(LoginRequest loginRequest);
 
 }

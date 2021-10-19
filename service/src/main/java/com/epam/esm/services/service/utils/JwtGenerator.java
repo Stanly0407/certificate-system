@@ -1,6 +1,5 @@
 package com.epam.esm.services.service.utils;
 
-import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.service.security.UserDetailsImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,12 +19,13 @@ import java.util.Date;
 public class JwtGenerator {
 
     private static final Logger LOGGER = LogManager.getLogger(JwtGenerator.class);
+    private static final int MS_IN_ONE_MINUTE = 60000;
 
     @Value("${epam.app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${epam.app.jwtExpirationMs}")
-    private int jwtExpirationMs;
+    @Value("${epam.app.jwtExpirationMin}")
+    private int jwtExpirationMin;
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -35,11 +35,11 @@ public class JwtGenerator {
 
     public String generateTokenFromLogin(String login) {
         Date now = new Date();
-        Date expiresJwt = new Date((new Date()).getTime() + jwtExpirationMs);
+        Date expiresJwt = new Date((new Date()).getTime() + (jwtExpirationMin * MS_IN_ONE_MINUTE));
         return Jwts.builder()
                 .setSubject(login)
                 .setIssuedAt(now)
-                .setExpiration(expiresJwt)
+                .setExpiration(expiresJwt) //todo  сделать минуты
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }

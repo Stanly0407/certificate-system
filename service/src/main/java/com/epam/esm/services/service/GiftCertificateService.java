@@ -4,8 +4,8 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
-import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
-import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
+import com.epam.esm.services.requests.GiftCertificatePartialUpdateRequest;
+import com.epam.esm.services.requests.GiftCertificateTagsWrapper;
 
 import java.util.List;
 

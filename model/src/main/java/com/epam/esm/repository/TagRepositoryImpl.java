@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-@NoArgsConstructor
 public class TagRepositoryImpl implements TagRepository {
 
     private static final String SELECT_TAG_BY_NAME = "SELECT t FROM Tag t WHERE t.name= :name";

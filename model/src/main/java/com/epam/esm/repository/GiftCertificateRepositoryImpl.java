@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-@NoArgsConstructor
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
     private static final String SORT_BY_NAME = "name";

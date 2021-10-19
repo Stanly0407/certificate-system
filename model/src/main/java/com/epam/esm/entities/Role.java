@@ -1,5 +1,6 @@
 package com.epam.esm.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -28,7 +29,7 @@ public class Role extends Entity {
     private RoleName name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY, cascade = CascadeType.ALL, targetEntity = User.class)
-    // @JsonBackReference
+    @JsonBackReference
     private List<User> users;
 
 }

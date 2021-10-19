@@ -1,10 +1,9 @@
-package com.epam.esm.services.forms;
+package com.epam.esm.services.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 
@@ -12,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginForm {
+public class LoginRequest {
 
     @NotBlank
     private String login;

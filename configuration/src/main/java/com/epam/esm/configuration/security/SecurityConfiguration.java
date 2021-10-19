@@ -58,18 +58,23 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .cors().and().csrf().disable()
+                .csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler)
                 .accessDeniedHandler(accessDeniedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .authorizeRequests().antMatchers("/public/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/certificates/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/orders/**").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/certificates/**", "/tags/**").hasRole("USER")
-                .antMatchers("/**").hasRole("ADMIN");
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/certificates", "/certificates/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/orders", "/orders/payment").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/orders/**").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/tags/**").hasAnyRole("ADMIN", "USER")
+                .antMatchers(HttpMethod.DELETE, "/tags/**").hasRole("ADMIN")
+                .antMatchers("/tags", "/certificates/**", "/user/**", "/user").hasRole("ADMIN")
+                .antMatchers(HttpMethod.GET, "/users/**").hasRole("ADMIN");
         http
-                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
 }

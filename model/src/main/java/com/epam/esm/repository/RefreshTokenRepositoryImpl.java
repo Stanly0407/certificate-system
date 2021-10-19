@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-@NoArgsConstructor
 public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
 
     private static final String SELECT_REFRESH_TOKEN_BY_ID = "select rt from RefreshToken rt where rt.id = :id";

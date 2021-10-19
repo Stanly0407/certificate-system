@@ -9,7 +9,7 @@ import java.util.Optional;
  * An interface {@code UserRepository} defines the methods for retrieving user data from the database;
  *
  * @author Sviatlana Shelestava
- * @since 1.0
+ * @since 2.0
  */
 public interface UserRepository {
 

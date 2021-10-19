@@ -9,6 +9,11 @@ import com.epam.esm.repository.UserRepository;
 import com.epam.esm.services.dto.OrderDto;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
+import com.epam.esm.services.requests.OrderCreateRequest;
+import com.epam.esm.services.requests.PaymentRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,7 @@ import static com.epam.esm.services.exceptions.ExceptionMessageType.INCORRECT_PA
 @Transactional
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger LOGGER = LogManager.getLogger(OrderServiceImpl.class);
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final GiftCertificateRepository giftCertificateRepository;
@@ -35,12 +41,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Long createOrder(Long giftCertificateId, Long userId) throws ResourceNotFoundException {
-        Optional<User> userOptional = userRepository.getById(userId);
+    public Long createOrder(OrderCreateRequest orderCreateRequest) throws ResourceNotFoundException {
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        Long giftCertificateId = orderCreateRequest.getGiftCertificateId();
+        Optional<User> userOptional = userRepository.findByLogin(login);
         Optional<GiftCertificate> giftCertificateOptional = giftCertificateRepository.findById(giftCertificateId);
-        if (!userOptional.isPresent()) {
-            throw new ResourceNotFoundException(userId);
-        } else if (!giftCertificateOptional.isPresent()) {
+        if (!giftCertificateOptional.isPresent()) {
             throw new ResourceNotFoundException(giftCertificateId);
         } else {
             GiftCertificate giftCertificate = giftCertificateOptional.get();
@@ -52,11 +58,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void payOrder(Long orderId) throws ResourceNotFoundException, BadRequestException {
-        Optional<Order> orderOptional = orderRepository.findById(orderId);
+    public void payOrder(PaymentRequest paymentRequest) throws ResourceNotFoundException, BadRequestException {
+        Long orderId = paymentRequest.getOrderId();
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> userOptional = userRepository.findByLogin(login);
+        User user = userOptional.get();
+        Optional<Order> orderOptional = orderRepository.findById(orderId, user);
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
             if (order.isPaid()) {
+                LOGGER.info("Order id=" + orderId + " is already paid!");
                 throw new BadRequestException(INCORRECT_PARAMETERS);
             } else {
                 orderRepository.updateOrderStatus(orderId);
@@ -67,17 +78,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getPaidUserOrders(Long userId, int pageNumber, int pageSize) throws ResourceNotFoundException {
+    public List<Order> getUserOrders(Long userId, Boolean isPaid, int pageNumber, int pageSize)
+            throws ResourceNotFoundException {
+        if (userId == null) {
+            String login = SecurityContextHolder.getContext().getAuthentication().getName();
+            Optional<User> userOptional = userRepository.findByLogin(login);
+            userId = userOptional.get().getId();
+        }
         Optional<User> user = userRepository.getById(userId);
         if (user.isPresent()) {
-            return orderRepository.getPaidUserOrders(userId, pageNumber, pageSize);
+            if (isPaid != null) {
+                return orderRepository.getUserOrders(userId, isPaid, pageNumber, pageSize);
+            } else {
+                return orderRepository.getAllUserOrders(userId, pageNumber, pageSize);
+            }
         } else {
             throw new ResourceNotFoundException(userId);
         }
     }
 
-    public long getUsersPaginationInfo(Integer pageSize, Integer pageNumber, Long userId) throws ResourceNotFoundException {
-        long countResult = orderRepository.getPaidUserOrdersQuantity(userId);
+    public long getOrdersPaginationInfo(Integer pageSize, Boolean isPaid, Integer pageNumber, Long userId)
+            throws ResourceNotFoundException {
+        long countResult;
+        if (userId == null) {
+            String login = SecurityContextHolder.getContext().getAuthentication().getName();
+            Optional<User> userOptional = userRepository.findByLogin(login);
+            userId = userOptional.get().getId();
+        }
+        if (isPaid != null) {
+            countResult = orderRepository.getUserOrdersQuantity(userId, isPaid);
+        } else {
+            countResult = orderRepository.getAllUserOrdersQuantity(userId);
+        }
         long pageQuantity;
 
         if ((countResult % pageSize) != 0) {
@@ -93,14 +125,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto getPaidOrderById(Long orderId) throws ResourceNotFoundException {
-        Optional<Order> orderOptional = orderRepository.findById(orderId);
+    public Object getOrderById(Long orderId, Boolean isPaid) throws ResourceNotFoundException {
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> userOptional = userRepository.findByLogin(login);
+        User user = userOptional.get();
+        Optional<Order> orderOptional = orderRepository.findById(orderId, user);
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
-            if (order.isPaid()) {
+            if ((isPaid == null && order.isPaid()) || (isPaid != null && isPaid && order.isPaid())) {
                 BigDecimal orderPrice = order.getOrderPrice();
                 LocalDateTime purchaseDate = order.getPurchaseDate();
                 return new OrderDto(orderId, orderPrice, purchaseDate);
+            } else if ((isPaid == null && !order.isPaid()) || (isPaid != null && !isPaid && !order.isPaid())) {
+                return orderOptional.get();
             } else {
                 throw new ResourceNotFoundException(orderId);
             }

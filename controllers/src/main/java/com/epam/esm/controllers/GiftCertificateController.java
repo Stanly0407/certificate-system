@@ -4,8 +4,8 @@ import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
-import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
-import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
+import com.epam.esm.services.requests.GiftCertificatePartialUpdateRequest;
+import com.epam.esm.services.requests.GiftCertificateTagsWrapper;
 import com.epam.esm.services.service.GiftCertificateService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
@@ -23,17 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
-import static com.epam.esm.services.exceptions.ExceptionMessageType.COMMON_BAD_REQUEST;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 

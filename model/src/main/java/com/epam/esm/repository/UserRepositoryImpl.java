@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-@NoArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String SELECT_USERS = "select u from User u";
@@ -51,9 +50,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public Optional<User> findByLogin(String login) {
-        Query query = entityManager.createQuery(SELECT_USER_BY_LOGIN, User.class);
-        query.setParameter("login", login);
-        List<User> users = query.getResultList();
+        List<User> users = selectUserByLogin(login);
         if (users.isEmpty()) {
             return Optional.empty();
         } else {
@@ -63,10 +60,14 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public boolean existsByLogin(String login) {
+        List<User> users = selectUserByLogin(login);
+        return !users.isEmpty();
+    }
+
+    private List<User> selectUserByLogin(String login){
         Query query = entityManager.createQuery(SELECT_USER_BY_LOGIN, User.class);
         query.setParameter("login", login);
-        List<User> users = query.getResultList();
-        return !users.isEmpty();
+        return query.getResultList(); // if use getSingleResult(); - need try/catch NoResultException
     }
 
     public Long save(User user) {
