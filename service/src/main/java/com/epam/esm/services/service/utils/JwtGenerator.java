@@ -1,11 +1,11 @@
 package com.epam.esm.services.service.utils;
 
+import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.service.security.UserDetailsImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import org.apache.logging.log4j.LogManager;
@@ -56,18 +56,18 @@ public class JwtGenerator {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;
-        } catch (SignatureException e) {
-            LOGGER.info("Invalid JWT signature: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            LOGGER.info("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            LOGGER.info("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            LOGGER.info("JWT token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            LOGGER.info("JWT claims string is empty: {}", e.getMessage());
+        } catch (SignatureException exception) {
+            LOGGER.info("Invalid JWT signature: {}", exception.getMessage());
+        } catch (MalformedJwtException exception) {
+            LOGGER.info("Invalid JWT token: {}", exception.getMessage());
+        } catch (ExpiredJwtException exception) {
+            LOGGER.info("JWT token is expired: {}", exception.getMessage());
+        } catch (UnsupportedJwtException exception) {
+            LOGGER.info("JWT token is unsupported: {}", exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            LOGGER.info("JWT claims string is empty: {}", exception.getMessage());
         }
-        return false; //todo exception handling
+        return false;
     }
 
 }

@@ -7,17 +7,19 @@ import com.epam.esm.services.forms.OrderCreateRequest;
 import com.epam.esm.services.service.OrderService;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+
+//import org.springframework.security.access.annotation.Secured;
 
 /**
  * A class {@code OrderController} as request handler defines method which accepts
@@ -47,7 +49,6 @@ public class OrderController {
      * @throws ResourceNotFoundException if invalid parameters input for order creation;
      */
     @PostMapping
- //   @Secured("USER")
     public ResponseEntity<?> createOrder(@RequestBody @Valid OrderCreateRequest orderCreateRequest)
             throws ResourceNotFoundException {
         Long userId = orderCreateRequest.getUserId();
@@ -64,14 +65,12 @@ public class OrderController {
      * @return ResponseEntity representing the whole HTTP response: status code 201 and headers;
      * @throws ResourceNotFoundException if invalid parameters input for order creation;
      */
-    @PostMapping("/payment/{orderId}")
+    @PutMapping("/payment/{orderId}")
     public ResponseEntity<?> payOrder(@PathVariable @Min(1) Long orderId)
             throws BadRequestException, ResourceNotFoundException {
         orderService.payOrder(orderId);
         return ResponseEntity.ok().build();
     }
-
-
 
     /**
      * Finds paid user order by its id;

@@ -18,7 +18,6 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
 
     private static final String SELECT_REFRESH_TOKEN_BY_ID = "select rt from RefreshToken rt where rt.id = :id";
     private static final String SELECT_REFRESH_TOKEN_BY_TOKEN = "select rt from RefreshToken rt where rt.token = :token";
-    private static final String DELETE_REFRESH_TOKEN_BY_USER_ID = "delete rt from refresh_token rt where rt.user_id = :userId";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -53,14 +52,8 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
         return refreshToken;
     }
 
-    public void delete(Long id) {
-        entityManager.remove(id);
-    }
-
-    public void deleteByUserId(Long userId) {
-        Query query = entityManager.createNativeQuery(DELETE_REFRESH_TOKEN_BY_USER_ID, RefreshToken.class);
-        query.setParameter("userId", userId);
-        query.executeUpdate();
+    public void delete(RefreshToken refreshToken) {
+        entityManager.remove(refreshToken);
     }
 
 }

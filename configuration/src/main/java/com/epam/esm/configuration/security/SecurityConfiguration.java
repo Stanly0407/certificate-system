@@ -1,9 +1,8 @@
 package com.epam.esm.configuration.security;
 
 import com.epam.esm.services.service.security.UserDetailsServiceImpl;
-import com.epam.esm.services.service.utils.AuthEntryPointJwt;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.epam.esm.services.service.utils.CustomAccessDeniedHandler;
+import com.epam.esm.services.service.utils.CustomAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,15 +22,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private static final Logger LOGGER = LogManager.getLogger(SecurityConfiguration.class);
-
-    private UserDetailsServiceImpl userDetailsService;
-    private AuthEntryPointJwt unauthorizedHandler;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final CustomAuthenticationEntryPoint unauthorizedHandler;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfiguration(UserDetailsServiceImpl userDetailsService,
-                                 AuthEntryPointJwt unauthorizedHandler) {
+                                 CustomAuthenticationEntryPoint unauthorizedHandler,
+                                 CustomAccessDeniedHandler accessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -57,14 +57,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+        http
+                .cors().and().csrf().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedHandler)
+                .accessDeniedHandler(accessDeniedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .authorizeRequests().antMatchers(HttpMethod.POST, "/public/**").permitAll()
-                .antMatchers("/orders/**").permitAll() //todo add guest read operations permitAll()
-                .anyRequest().authenticated();
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                .authorizeRequests().antMatchers("/public/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/certificates/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/orders/**").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/certificates/**", "/tags/**").hasRole("USER")
+                .antMatchers("/**").hasRole("ADMIN");
+        http
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
-
 
 }

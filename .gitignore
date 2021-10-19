@@ -3,3 +3,8 @@
 *.properties
 target
 out
+/configuration/src/main/webapp/WEB-INF/web.xml
+/configuration/src/main/webapp/META-INF/MANIFEST.MF
+/configuration/src/main/resources/log4j2.xml
+/configuration/src/test/
+/logs/

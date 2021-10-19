@@ -4,6 +4,7 @@ import com.epam.esm.entities.RefreshToken;
 import com.epam.esm.repository.RefreshTokenRepository;
 import com.epam.esm.repository.UserRepository;
 import com.epam.esm.services.dto.TokenRefreshResponse;
+import com.epam.esm.services.exceptions.ExceptionMessageType;
 import com.epam.esm.services.exceptions.TokenRefreshException;
 import com.epam.esm.services.forms.TokenRefreshRequest;
 import com.epam.esm.services.service.utils.JwtGenerator;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.epam.esm.services.exceptions.ExceptionMessageType.UNKNOWN_REFRESH_TOKEN;
 
 @Service
 @Transactional
@@ -48,14 +51,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-            refreshTokenRepository.delete(token.getId());
-            throw new TokenRefreshException(token.getToken(), "Refresh token was expired. Please make a new signin request");
+            refreshTokenRepository.delete(token);
+            throw new TokenRefreshException(ExceptionMessageType.EXPIRED);
         }
         return token;
-    }
-
-    public void deleteByUserId(Long userId) {
-        refreshTokenRepository.deleteByUserId(userId);
     }
 
     public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
@@ -67,8 +66,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                     String token = jwtGenerator.generateTokenFromLogin(user.getLogin());
                     return new TokenRefreshResponse(token, requestRefreshToken);
                 })
-                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                        "Refresh token is not in database!"));
+                .orElseThrow(() -> new TokenRefreshException(UNKNOWN_REFRESH_TOKEN));
     }
 
 }

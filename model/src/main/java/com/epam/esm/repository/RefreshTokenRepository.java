@@ -18,8 +18,6 @@ public interface RefreshTokenRepository {
 
     RefreshToken save(RefreshToken refreshToken);
 
-    void delete(Long id);
-
-    void deleteByUserId(Long userId);
+    void delete(RefreshToken refreshToken);
 
 }
