@@ -22,7 +22,6 @@ public class TagServiceImpl implements TagService {
         this.tagRepository = tagRepository;
     }
 
-
     public Long saveNewTag(String tagName) throws BadRequestException {
         Optional<Tag> tagOptional = tagRepository.findTagByName(tagName);
         if (tagOptional.isPresent()) {

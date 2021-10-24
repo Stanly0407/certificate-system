@@ -1,4 +1,4 @@
-package com.epam.esm.services.forms;
+package com.epam.esm.services.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,14 +12,10 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @Getter
 @Builder
-public class OrderCreateRequest {
+public class PaymentRequest {
 
     @NotNull
     @Min(1)
-    private Long userId;
-
-    @NotNull
-    @Min(1)
-    private Long giftCertificateId;
+    private Long orderId;
 
 }

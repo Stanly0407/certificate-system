@@ -77,7 +77,7 @@ public class GiftCertificate extends Entity {
             inverseJoinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")})
     private List<Tag> tags;
 
-    @OneToMany(mappedBy = "giftCertificate", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "giftCertificate", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Order> orders;
 

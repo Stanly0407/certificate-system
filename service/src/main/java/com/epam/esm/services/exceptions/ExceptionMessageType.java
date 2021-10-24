@@ -13,10 +13,22 @@ public enum ExceptionMessageType {
     NOT_BLANK("notBlank", 40008),
     UNKNOWN_PROPERTIES("unknownProperties", 40009),
     INCORRECT_SORT("incorrectSort", 40010),
+    MISSING_HEADER("MissingRequestHeaderException", 40011),
+
+    UNAUTHORIZED("message.security.unauthorized", 40101),
+    EXPIRED("message.exception.tokenRefreshException.expired", 40102),
+    INCORRECT_TOKEN("message.exception.tokenRefreshException.unknown", 40103),
+    UNKNOWN_USER("message.security.unknownUser", 40104),
+
+    FORBIDDEN("message.security.accessDenied", 40301),
 
     NOT_FOUND_RESOURCE("resource", 40401),
     NOT_FOUND_PAGE("page", 40402),
     NOT_FOUND_COMMON("common", 40403),
+
+    UNSUPPORTED_MEDIA_TYPE("message.exception.unsupportedMediaType", 41501),
+
+    UNPROCESSABLE_ENTITY("loginTaken", 42201),
 
     INTERNAL_ERROR("message.exception.internal", 50001);
 

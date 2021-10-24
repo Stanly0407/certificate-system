@@ -1,5 +1,6 @@
-package com.epam.esm.entities;
+package com.epam.esm.entities.utils;
 
+import com.epam.esm.entities.Entity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

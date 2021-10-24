@@ -6,8 +6,8 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.services.exceptions.BadRequestException;
 import com.epam.esm.services.exceptions.ResourceNotFoundException;
-import com.epam.esm.services.forms.GiftCertificatePartialUpdateRequest;
-import com.epam.esm.services.forms.GiftCertificateTagsWrapper;
+import com.epam.esm.services.requests.GiftCertificatePartialUpdateRequest;
+import com.epam.esm.services.requests.GiftCertificateTagsWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,10 +216,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
     }
 
-    private void checkListSortParameters(List<String> sortParams) throws BadRequestException {
-        if (sortParams != null) {
+    private void checkListSortParameters(List<String> params) throws BadRequestException {
+        if (params != null) {
+            List<String> sortParams = params.stream().sorted().collect(Collectors.toList());
             if ((sortParams.size() == 1 && !(NAME_PARAM.equals(sortParams.get(0)) || DATE_PARAM.equals(sortParams.get(0)))) ||
-                    (sortParams.size() == 2 && !(NAME_PARAM.equals(sortParams.get(0)) && DATE_PARAM.equals(sortParams.get(0)))) ||
+                    (sortParams.size() == 2 && !(NAME_PARAM.equals(sortParams.get(1)) && DATE_PARAM.equals(sortParams.get(0)))) ||
                     sortParams.size() >= 3) {
                 throw new BadRequestException(INCORRECT_SORT);
             }

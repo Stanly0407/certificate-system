@@ -28,7 +28,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * user Tag requests and performs interactions on the data model objects by using service layer.
  *
  * @author Sviatlana Shelestava
- * @since 1.0
+ * @since 2.0
  */
 @RestController
 @RequestMapping("users")
@@ -78,10 +78,7 @@ public class UserController {
                 .toUriComponentsBuilder().buildAndExpand().toString();
         List<Link> links = linkBuilder.createPaginationLinks(pageQuantity, pageNumber, uriString);
         CollectionModel<User> result = CollectionModel.of(users, links);
-        return ResponseEntity.ok()
-                // info with common pagination pages quantity
-                .header("x-total-page-count", String.valueOf(pageQuantity))
-                .body(result);
+        return ResponseEntity.ok().header("x-total-page-count", String.valueOf(pageQuantity)).body(result);
     }
 
     /**
@@ -89,30 +86,29 @@ public class UserController {
      *
      * @param userId     is a unique field of the user;
      * @param pageNumber is a requested number of page with search result;
-     * @param pageSize   is a number of request result displayed
+     * @param pageSize   is a number of request result displayed;
+     * @param isPaid     is an an order payment status;
      * @return ResponseEntity representing the whole HTTP response: status code, headers, and body with collection
      * <code>List</code> contains users or empty collection <code>List</code>;
      * @throws ResourceNotFoundException if the requested tag is not found;
      */
-    @GetMapping("{userId}/purchases")
-    public ResponseEntity<?> getPaidUserOrders(@PathVariable @Min(1) Long userId,
+    @GetMapping("{userId}/orders")
+    public ResponseEntity<?> getUserOrders(@PathVariable @Min(1) Long userId,
                                            @RequestParam(defaultValue = "1", value = "page") @Min(1) int pageNumber,
-                                           @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) int pageSize)
+                                           @RequestParam(defaultValue = "5", value = "size") @Min(1) @Max(50) int pageSize,
+                                           @RequestParam(required = false) Boolean isPaid)
             throws ResourceNotFoundException {
-        long pageQuantity = orderService.getUsersPaginationInfo(pageSize, pageNumber, userId);
-        List<Order> paidUserOrders = orderService.getPaidUserOrders(userId, pageNumber, pageSize);
-        if (paidUserOrders.isEmpty()) {
-            return ResponseEntity.ok().body(paidUserOrders);
+        long pageQuantity = orderService.getOrdersPaginationInfo(pageSize, isPaid, pageNumber, userId);
+        List<Order> userOrders = orderService.getUserOrders(userId, isPaid, pageNumber, pageSize);
+        if (userOrders.isEmpty()) {
+            return ResponseEntity.ok().body(userOrders);
         } else {
-            String uriString = linkTo(methodOn(UserController.class).getPaidUserOrders(userId, pageNumber, pageSize))
+            String uriString = linkTo(methodOn(UserController.class).getUserOrders(userId, pageNumber, pageSize, isPaid))
                     .toUriComponentsBuilder().buildAndExpand().toString();
-            paidUserOrders.forEach(e -> linkBuilder.addSelfLink(e, e.getId(), OrderController.class));
+            userOrders.forEach(e -> linkBuilder.addSelfLink(e, e.getId(), OrderController.class));
             List<Link> links = linkBuilder.createPaginationLinks(pageQuantity, pageNumber, uriString);
-            CollectionModel<Order> result = CollectionModel.of(paidUserOrders, links);
-            return ResponseEntity.ok()
-                    // info with common pagination pages quantity
-                    .header("x-total-page-count", String.valueOf(pageQuantity))
-                    .body(result);
+            CollectionModel<Order> result = CollectionModel.of(userOrders, links);
+            return ResponseEntity.ok().header("x-total-page-count", String.valueOf(pageQuantity)).body(result);
         }
     }
 

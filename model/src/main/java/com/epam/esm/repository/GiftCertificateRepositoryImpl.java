@@ -2,6 +2,7 @@ package com.epam.esm.repository;
 
 import com.epam.esm.entities.GiftCertificate;
 import com.epam.esm.entities.Tag;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +19,6 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
     private static final String SORT_BY_NAME = "name";
     private static final String SORT_BY_DATE = "date";
     private static final String SORT_ORDER_DESC = "desc";
-    private static final String SEARCH_ALL = "ALL";
     private static final String SEARCH_BY_TAG = "BY_TAG";
     private static final String SEARCH_BY_TAGS = "BY_SEVERAL_TAGS";
     private static final String SEARCH_MATCH = "MATCH";
@@ -37,9 +37,6 @@ public class GiftCertificateRepositoryImpl implements GiftCertificateRepository 
 
     @PersistenceContext
     EntityManager entityManager;
-
-    public GiftCertificateRepositoryImpl() {
-    }
 
     public void addTagToGiftCertificate(GiftCertificate giftCertificate, Tag tag) {
         Query query = entityManager.createNativeQuery(INSERT_CERTIFICATE_TAG);

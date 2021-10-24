@@ -34,6 +34,7 @@
       <artifactId>controllers</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -45,7 +46,6 @@
       <artifactId>commons-text</artifactId>
       <version>1.9</version>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -94,4 +94,5 @@
           </plugin>
       </plugins>
   </build>
+
 </project>

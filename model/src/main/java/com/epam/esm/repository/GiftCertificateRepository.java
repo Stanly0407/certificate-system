@@ -19,7 +19,7 @@ public interface GiftCertificateRepository {
      * Executes the SQL <code>INSERT</code> statement, which creates new giftCertificate in database;
      *
      * @param giftCertificate is an entity to be created;
-     * @return a <code>Long</code> generated id of the newly created tag
+     * @return a <code>Long</code> generated id of the newly created giftCertificate
      */
     Long save(GiftCertificate giftCertificate);
 
